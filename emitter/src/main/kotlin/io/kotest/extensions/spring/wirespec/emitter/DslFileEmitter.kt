@@ -21,6 +21,10 @@ object DslFileEmitter {
         appendLine("import io.kotest.extensions.spring.wirespec.dsl.WirespecScenarioDsl")
         appendLine("import io.kotest.extensions.spring.wirespec.dsl.EndpointCallBuilder.StreamingMode")
         appendLine("import kotlin.time.Duration")
+        if (shape.bodyType != null) {
+            appendLine("import community.flock.wirespec.integration.kotest.KotestWirespecGeneratorBuilder")
+            appendLine("import io.kotest.property.Arb")
+        }
         appendLine()
         appendLine("public fun ScenarioBuilder.${shape.dslName}(block: ${shape.name}Call.() -> Unit = {}): ${shape.name}Call =")
         appendLine("    ${shape.name}Call(this).apply(block)")
@@ -29,8 +33,22 @@ object DslFileEmitter {
         appendLine("public class ${shape.name}Call internal constructor(scenario: ScenarioBuilder) {")
         appendLine("    @PublishedApi internal val inner = scenario.endpoint(${shape.name}.Handler)")
         appendLine()
+        if (shape.bodyType != null) renderBodySlot(shape, shape.bodyType)
         renderResponseDsl(shape)
         appendLine("}")
+    }
+
+    private fun StringBuilder.renderBodySlot(shape: EndpointShape, bodyType: String) {
+        val call = "${shape.name}Call"
+        appendLine("    public fun body(value: $bodyType): $call =")
+        appendLine("        apply { inner.body(value) }")
+        appendLine()
+        appendLine("    public fun body(arb: Arb<$bodyType>): $call =")
+        appendLine("        apply { inner.body(arb) }")
+        appendLine()
+        appendLine("    public fun body(overrides: KotestWirespecGeneratorBuilder.() -> Unit): $call =")
+        appendLine("        apply { inner.body(overrides) }")
+        appendLine()
     }
 
     private fun StringBuilder.renderResponseDsl(shape: EndpointShape) {
