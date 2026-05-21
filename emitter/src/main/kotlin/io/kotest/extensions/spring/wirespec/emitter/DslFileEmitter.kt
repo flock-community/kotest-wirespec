@@ -34,8 +34,30 @@ object DslFileEmitter {
         appendLine("    @PublishedApi internal val inner = scenario.endpoint(${shape.name}.Handler)")
         appendLine()
         if (shape.bodyType != null) renderBodySlot(shape, shape.bodyType)
+        if (shape.pathFields.isNotEmpty()) renderPathSlot(shape)
         renderResponseDsl(shape)
         appendLine("}")
+    }
+
+    private fun StringBuilder.renderPathSlot(shape: EndpointShape) {
+        val call = "${shape.name}Call"
+        val params = shape.pathFields.joinToString(", ") { "${it.name}: ${it.kotlinType}" }
+        val ctorArgs = shape.pathFields.joinToString(", ") { "${it.name} = ${it.name}" }
+
+        appendLine("    public fun path($params): $call =")
+        appendLine("        apply { inner.path(${shape.name}.Path($ctorArgs)) }")
+        appendLine()
+
+        if (shape.pathFields.size == 1) {
+            val f = shape.pathFields.single()
+            appendLine("    public fun path(${f.name}: ResultRef<${f.kotlinType}>): $call =")
+            appendLine("        apply { inner.path { ${shape.name}.Path(${f.name} = ${f.name}.require()) } }")
+            appendLine()
+        }
+
+        appendLine("    public fun path(builder: () -> ${shape.name}.Path): $call =")
+        appendLine("        apply { inner.path(builder) }")
+        appendLine()
     }
 
     private fun StringBuilder.renderBodySlot(shape: EndpointShape, bodyType: String) {
