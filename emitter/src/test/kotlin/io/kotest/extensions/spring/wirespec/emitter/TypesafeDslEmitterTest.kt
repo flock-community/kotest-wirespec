@@ -1,6 +1,7 @@
 package io.kotest.extensions.spring.wirespec.emitter
 
 import community.flock.wirespec.compiler.core.FileUri
+import community.flock.wirespec.compiler.core.emit.EmitShared
 import community.flock.wirespec.compiler.core.emit.PackageName
 import community.flock.wirespec.compiler.core.parse.ast.DefinitionIdentifier
 import community.flock.wirespec.compiler.core.parse.ast.Endpoint
@@ -35,11 +36,11 @@ class TypesafeDslEmitterTest : FunSpec({
         val module = Module(FileUri("mem://pets.ws"), nonEmptyListOf(endpoint))
         val ast = Root(nonEmptyListOf(module))
 
-        val emitter = TypesafeDslEmitter(PackageName("com.example.api"))
+        val emitter = TypesafeDslEmitter(PackageName("com.example.api"), EmitShared())
         val emitted = emitter.emit(ast, noLogger)
 
         val files = emitted.toList().map { it.file }
-        files shouldContain "com/example/api/endpoint/PetCreateDsl.kt"
+        files shouldContain "com/example/api/kotest/PetCreateDsl.kt"
         // base emitter still produces its endpoint file
         files shouldContain "com/example/api/endpoint/PetCreate.kt"
     }

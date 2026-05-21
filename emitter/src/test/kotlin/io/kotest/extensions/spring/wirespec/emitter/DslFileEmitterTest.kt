@@ -23,7 +23,7 @@ class DslFileEmitterTest : FunSpec({
 
     test("no slots — only expecting/returning/collecting on the Call class") {
         val emitted = DslFileEmitter.emit(emptyEndpoint("NoSlots"), pkg)
-        emitted.file shouldBe "com/example/api/endpoint/NoSlotsDsl.kt"
+        emitted.file shouldBe "com/example/api/kotest/NoSlotsDsl.kt"
         emitted.result shouldBe readGolden("NoSlotsDsl.kt")
     }
 
@@ -48,7 +48,7 @@ class DslFileEmitterTest : FunSpec({
         )
 
         val emitted = DslFileEmitter.emit(endpoint, pkg)
-        emitted.file shouldBe "com/example/api/endpoint/PetGetDsl.kt"
+        emitted.file shouldBe "com/example/api/kotest/PetGetDsl.kt"
         emitted.result shouldBe readGolden("PetGetDsl.kt")
     }
 
@@ -75,7 +75,7 @@ class DslFileEmitterTest : FunSpec({
         )
 
         val emitted = DslFileEmitter.emit(endpoint, pkg)
-        emitted.file shouldBe "com/example/api/endpoint/PetListDsl.kt"
+        emitted.file shouldBe "com/example/api/kotest/PetListDsl.kt"
         emitted.result shouldBe readGolden("PetListDsl.kt")
     }
 
@@ -102,7 +102,7 @@ class DslFileEmitterTest : FunSpec({
         )
 
         val emitted = DslFileEmitter.emit(endpoint, pkg)
-        emitted.file shouldBe "com/example/api/endpoint/HeaderEndpointDsl.kt"
+        emitted.file shouldBe "com/example/api/kotest/HeaderEndpointDsl.kt"
         emitted.result shouldBe readGolden("HeaderEndpointDsl.kt")
     }
 
@@ -148,7 +148,7 @@ class DslFileEmitterTest : FunSpec({
         )
 
         val emitted = DslFileEmitter.emit(endpoint, pkg)
-        emitted.file shouldBe "com/example/api/endpoint/PetCreateDsl.kt"
+        emitted.file shouldBe "com/example/api/kotest/PetCreateDsl.kt"
         emitted.result shouldBe readGolden("PetCreateDsl.kt")
     }
 })

@@ -11,7 +11,7 @@ import community.flock.wirespec.emitters.kotlin.KotlinIrEmitter
 
 open class TypesafeDslEmitter(
     packageName: PackageName,
-    emitShared: EmitShared = EmitShared(),
+    emitShared: EmitShared,
 ) : KotlinIrEmitter(packageName, emitShared) {
 
     override fun emit(ast: AST, logger: Logger): NonEmptyList<Emitted> {

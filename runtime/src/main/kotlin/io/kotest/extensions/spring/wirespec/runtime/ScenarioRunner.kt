@@ -1,0 +1,184 @@
+package io.kotest.extensions.spring.wirespec.runtime
+
+import community.flock.wirespec.integration.kotest.kotestWirespecKotlinGenerator
+import community.flock.wirespec.kotlin.Wirespec
+import io.kotest.extensions.spring.wirespec.dsl.ArbReceiver
+import io.kotest.extensions.spring.wirespec.dsl.EndpointCallBuilder
+import io.kotest.extensions.spring.wirespec.dsl.Input
+import io.kotest.extensions.spring.wirespec.dsl.ResultRef
+import io.kotest.extensions.spring.wirespec.dsl.ScenarioBuilder
+import io.kotest.extensions.spring.wirespec.validation.ContractValidator
+import io.kotest.extensions.spring.wirespec.validation.EndpointReflection
+import io.kotest.property.RandomSource
+import kotlinx.coroutines.runBlocking
+
+/**
+ * Executes the captured endpoint-call sequence of a [ScenarioBuilder] against a
+ * live Spring Boot test context.
+ *
+ * Per iteration, for each call in declaration order:
+ *   1. Resolve slot inputs (literal / Arb / ResultRef) into constructor arg values.
+ *   2. Default unset slots from the Wirespec-generated `*Generator` companions
+ *      ([ArbReceiver.gen]) — sensible Arb defaults that respect the contract.
+ *   3. Reflectively call the typed Request constructor (the IR emitter generates
+ *      a user-facing secondary constructor whose parameters match our slots).
+ *   4. Send via [Wirespec.ClientEdge.to] / [Wirespec.Transportation.transport] /
+ *      [Wirespec.ClientEdge.from] — fully typed, no reflection on the transport
+ *      itself.
+ *   5. Auto-validate (status declared by the contract + body schema matches).
+ *   6. Run optional narrowed-status assertion and the `returning` projection.
+ *   7. Clear [ResultRef]s before the next iteration starts.
+ *
+ * Iteration uses Kotest's [RandomSource] threading so failures can be reproduced
+ * by fixing the seed.
+ */
+internal class ScenarioRunner(
+    private val scenario: ScenarioBuilder,
+    private val transportation: Wirespec.Transportation,
+    private val serialization: Wirespec.Serialization,
+    private val randomSource: RandomSource,
+    private val arbReceiver: ArbReceiver,
+) {
+
+    fun run() {
+        for ((index, call) in scenario.calls.withIndex()) {
+            runOne(call, index)
+        }
+    }
+
+    private fun runOne(call: EndpointCallBuilder<*, *, *>, index: Int) {
+        val reflection = call.reflection
+        val request = reflection.buildRequest(resolveSlots(call, reflection))
+
+        // Typed transport via the Wirespec.Client's ClientEdge — no reflection
+        // on toRawRequest/fromRawResponse. At the boundary between our generic
+        // EndpointCallBuilder<*, *, *> list and the call's concrete Req/Resp
+        // we erase via star projections; the underlying call has matching
+        // types by construction (enforced at the DSL surface).
+        @Suppress("UNCHECKED_CAST")
+        val starClient = call.client as Wirespec.Client<Wirespec.Request<Any>, Wirespec.Response<*>>
+        val clientEdge = starClient.client(serialization)
+        @Suppress("UNCHECKED_CAST")
+        val rawRequest = clientEdge.to(request as Wirespec.Request<Any>)
+        val rawResponse = runBlocking { transportation.transport(rawRequest) }
+
+        val validator = ContractValidator(reflection, serialization)
+        val typedResponse = try {
+            validator.validate(rawResponse, expectedStatuses = call.expectedStatuses)
+        } catch (t: Throwable) {
+            throw AssertionError(
+                "Scenario step #${index + 1} (${reflection.endpointName}) failed: ${t.message}",
+                t,
+            )
+        }
+
+        call.customAssertion?.invoke(typedResponse)
+
+        call.returningProjection?.let { projection ->
+            @Suppress("UNCHECKED_CAST")
+            val ref = call.returnedRef as ResultRef<Any?>
+            ref.set(projection.invoke(typedResponse))
+        }
+    }
+
+    /**
+     * Map each [EndpointCallBuilder] slot input to the Request constructor's
+     * argument names. Multi-field slots (e.g., PetList's Queries with limit + offset)
+     * accept a typed instance of the slot class which is then destructured.
+     *
+     * Unset slots fall through to a contract-driven default:
+     *   - **body**: generate via the matching `<BodyT>Generator` companion.
+     *   - **path / query / header**: defaults stay empty (singleton object) unless
+     *     they have fields that line up with constructor params, in which case
+     *     the user must supply them. (Phase 5 will extend defaults here.)
+     */
+    private fun resolveSlots(call: EndpointCallBuilder<*, *, *>, reflection: EndpointReflection): Map<String, Any?> {
+        val args = mutableMapOf<String, Any?>()
+
+        // body slot: precedence is user-literal/Arb/Ref > registerPath/Field overrides
+        // > fully-default Arb from the Wirespec *Generator companion.
+        when {
+            call.bodyInput != null -> {
+                args["body"] = resolve(call.bodyInput!!)
+            }
+            reflection.hasBody -> {
+                val bodyType = reflection.requestConstructor.parameters
+                    .firstOrNull { it.name == "body" }
+                    ?.type
+                    ?: error("${reflection.endpointName}: hasBody=true but no `body` constructor param.")
+                val generator = call.bodyOverrides?.let { overrides ->
+                    // Build a per-call generator seeded off the iteration RandomSource
+                    // so reproducibility holds; the user's overrides layer on top.
+                    kotestWirespecKotlinGenerator(seed = randomSource.random.nextLong()) {
+                        overrides()
+                    }
+                } ?: arbReceiver.generator
+                args["body"] = arbReceiver.generatorFor(bodyType).generate(generator, emptyList())
+            }
+        }
+
+        call.pathInput?.let { input ->
+            distribute(
+                resolved = resolve(input),
+                fieldNames = reflection.pathFieldNames,
+                slotName = "path",
+                slotClass = reflection.pathClass,
+                endpointName = reflection.endpointName,
+                args = args,
+            )
+        }
+        call.queryInput?.let { input ->
+            distribute(
+                resolved = resolve(input),
+                fieldNames = reflection.queriesFieldNames,
+                slotName = "query",
+                slotClass = reflection.queriesClass,
+                endpointName = reflection.endpointName,
+                args = args,
+            )
+        }
+        call.headerInput?.let { input ->
+            distribute(
+                resolved = resolve(input),
+                fieldNames = reflection.headersFieldNames,
+                slotName = "header",
+                slotClass = reflection.headersClass,
+                endpointName = reflection.endpointName,
+                args = args,
+            )
+        }
+        return args
+    }
+
+    private fun resolve(input: Input<Any>): Any = input.resolve(randomSource)
+
+    private fun distribute(
+        resolved: Any,
+        fieldNames: List<String>,
+        slotName: String,
+        slotClass: Class<*>,
+        endpointName: String,
+        args: MutableMap<String, Any?>,
+    ) {
+        when {
+            fieldNames.size == 1 && !slotClass.isInstance(resolved) -> {
+                args[fieldNames[0]] = resolved
+            }
+            slotClass.isInstance(resolved) -> {
+                for (name in fieldNames) {
+                    val field = slotClass.getDeclaredField(name)
+                    field.isAccessible = true
+                    args[name] = field.get(resolved)
+                }
+            }
+            fieldNames.isEmpty() -> {
+                // Slot is a data object — value is unused. Ignored.
+            }
+            else -> error(
+                "Endpoint $endpointName: slot `$slotName` has ${fieldNames.size} fields ($fieldNames) " +
+                    "but received a value of type ${resolved::class.simpleName} that is neither a single " +
+                    "field value nor an instance of ${slotClass.simpleName}.",
+            )
+        }
+    }
+}
