@@ -35,8 +35,22 @@ object DslFileEmitter {
         appendLine()
         if (shape.bodyType != null) renderBodySlot(shape, shape.bodyType)
         if (shape.pathFields.isNotEmpty()) renderPathSlot(shape)
+        if (shape.queryFields.isNotEmpty()) renderQuerySlot(shape)
         renderResponseDsl(shape)
         appendLine("}")
+    }
+
+    private fun StringBuilder.renderQuerySlot(shape: EndpointShape) {
+        val call = "${shape.name}Call"
+        val params = shape.queryFields.joinToString(", ") { "${it.name}: ${it.kotlinType}" }
+        val ctorArgs = shape.queryFields.joinToString(", ") { "${it.name} = ${it.name}" }
+
+        appendLine("    public fun query($params): $call =")
+        appendLine("        apply { inner.query(${shape.name}.Queries($ctorArgs)) }")
+        appendLine()
+        appendLine("    public fun query(builder: () -> ${shape.name}.Queries): $call =")
+        appendLine("        apply { inner.query(builder) }")
+        appendLine()
     }
 
     private fun StringBuilder.renderPathSlot(shape: EndpointShape) {

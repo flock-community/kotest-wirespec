@@ -52,6 +52,33 @@ class DslFileEmitterTest : FunSpec({
         emitted.result shouldBe readGolden("PetGetDsl.kt")
     }
 
+    test("queries-only endpoint (PetList) — typed query(limit, offset)") {
+        val intRef = community.flock.wirespec.compiler.core.parse.ast.Reference.Primitive(
+            community.flock.wirespec.compiler.core.parse.ast.Reference.Primitive.Type.Integer(
+                community.flock.wirespec.compiler.core.parse.ast.Reference.Primitive.Type.Precision.P32, null
+            ),
+            false,
+        )
+        val endpoint = Endpoint(
+            comment = null,
+            annotations = emptyList(),
+            identifier = DefinitionIdentifier("PetList"),
+            method = Endpoint.Method.GET,
+            path = listOf(Endpoint.Segment.Literal("api"), Endpoint.Segment.Literal("pets")),
+            queries = listOf(
+                community.flock.wirespec.compiler.core.parse.ast.Field(emptyList(), community.flock.wirespec.compiler.core.parse.ast.FieldIdentifier("limit"), intRef),
+                community.flock.wirespec.compiler.core.parse.ast.Field(emptyList(), community.flock.wirespec.compiler.core.parse.ast.FieldIdentifier("offset"), intRef),
+            ),
+            headers = emptyList(),
+            requests = listOf(Endpoint.Request(content = null)),
+            responses = emptyList(),
+        )
+
+        val emitted = DslFileEmitter.emit(endpoint, pkg)
+        emitted.file shouldBe "com/example/api/endpoint/PetListDsl.kt"
+        emitted.result shouldBe readGolden("PetListDsl.kt")
+    }
+
     test("body-only endpoint (PetCreate) — body() overloads, no path/query/header") {
         val createReq = community.flock.wirespec.compiler.core.parse.ast.Reference.Custom("CreatePetRequest", isNullable = false)
         val endpoint = Endpoint(
