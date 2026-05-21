@@ -47,4 +47,17 @@ class PetScenariosTypesafeDslSpec : SpringScenarioSpec(ExampleApplication::class
                 resp.body.content.size shouldBe resp.body.total.coerceAtMost(10)
             }
     }
+
+    // The following are checked manually — uncomment to verify each fails to
+    // compile, then re-comment. The typesafe DSL prevents both at compile time:
+    //
+    //   // COMPILE-ERROR-EXPECTED: "Unresolved reference 'path'"
+    //   //   petCreate has no path slot — PetCreate.Path is empty
+    //   scenario("wrong slot") { petCreate { path("p-1") } }
+    //
+    //   // COMPILE-ERROR-EXPECTED: "Type argument is not within its bounds"
+    //   //   PetGet.Response200 is not a PetCreate.Response<*>
+    //   scenario("wrong response variant") { petCreate { expecting<PetGet.Response200>() } }
+    //
+    // Last manually verified: 2026-05-21.
 })
