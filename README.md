@@ -43,7 +43,6 @@ class PetScenariosSpec : SpringScenarioSpec(MyApp::class, {
 
     scenario("pet CRUD", iterations = 50) {
         val petId = createPet
-            .body(CreatePetRequest(name = "Fido", species = "dog"))
             .returning<CreatePet.Response201, String> { it.body.id }
 
         getPet
