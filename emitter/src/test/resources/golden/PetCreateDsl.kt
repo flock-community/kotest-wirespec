@@ -7,6 +7,7 @@ import io.kotest.extensions.spring.wirespec.dsl.EndpointCallBuilder.StreamingMod
 import kotlin.time.Duration
 import community.flock.wirespec.integration.kotest.KotestWirespecGeneratorBuilder
 import io.kotest.property.Arb
+import com.example.api.model.CreatePetRequest
 
 public fun ScenarioBuilder.petCreate(block: PetCreateCall.() -> Unit = {}): PetCreateCall =
     PetCreateCall(this).apply(block)

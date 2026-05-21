@@ -9,11 +9,12 @@ object DslFileEmitter {
     fun emit(endpoint: Endpoint, packageName: PackageName): Emitted {
         val shape = EndpointShape.from(endpoint)
         val endpointPkg = "${packageName.value}.endpoint"
+        val modelPkg = "${packageName.value}.model"
         val file = endpointPkg.replace('.', '/') + "/${shape.name}Dsl.kt"
-        return Emitted(file = file, result = render(shape, endpointPkg))
+        return Emitted(file = file, result = render(shape, endpointPkg, modelPkg))
     }
 
-    private fun render(shape: EndpointShape, endpointPkg: String): String = buildString {
+    private fun render(shape: EndpointShape, endpointPkg: String, modelPkg: String): String = buildString {
         appendLine("package $endpointPkg")
         appendLine()
         appendLine("import io.kotest.extensions.spring.wirespec.dsl.ResultRef")
@@ -25,6 +26,7 @@ object DslFileEmitter {
             appendLine("import community.flock.wirespec.integration.kotest.KotestWirespecGeneratorBuilder")
             appendLine("import io.kotest.property.Arb")
         }
+        shape.modelImports.forEach { appendLine("import $modelPkg.$it") }
         appendLine()
         appendLine("public fun ScenarioBuilder.${shape.dslName}(block: ${shape.name}Call.() -> Unit = {}): ${shape.name}Call =")
         appendLine("    ${shape.name}Call(this).apply(block)")

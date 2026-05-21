@@ -16,8 +16,9 @@ dependencyResolutionManagement {
     }
 }
 
+includeBuild("emitter")
+
 rootProject.name = "kotest-extensions-spring-wirespec"
 
 include(":runtime")
 include(":example")
-include(":emitter")
