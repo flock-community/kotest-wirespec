@@ -5,7 +5,6 @@ import io.kotest.extensions.spring.wirespec.dsl.WirespecScenarioDsl
 import io.kotest.extensions.spring.wirespec.dsl.EndpointCallBuilder.StreamingMode
 import kotlin.time.Duration
 import com.example.api.endpoint.PetCreate
-import community.flock.wirespec.integration.kotest.KotestWirespecGeneratorBuilder
 import io.kotest.property.Arb
 import com.example.api.model.CreatePetRequest
 public val ScenarioBuilder.petCreate: PetCreateCall
@@ -17,8 +16,6 @@ public class PetCreateCall internal constructor(scenario: ScenarioBuilder) {
         apply { inner.body(value) }
     public fun body(arb: Arb<CreatePetRequest>): PetCreateCall =
         apply { inner.body(arb) }
-    public fun body(overrides: KotestWirespecGeneratorBuilder.() -> Unit): PetCreateCall =
-        apply { inner.body(overrides) }
     public inline fun <reified R : PetCreate.Response<*>> expecting(): PetCreateCall =
         apply { inner.expecting<R>() }
     public inline fun <reified R : PetCreate.Response<*>> expecting(noinline block: (R) -> Unit): PetCreateCall =
