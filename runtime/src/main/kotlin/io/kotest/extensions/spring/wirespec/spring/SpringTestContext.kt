@@ -25,7 +25,7 @@ import kotlin.reflect.KClass
  *
  * Spec-scoped: one context per spec, reused across all scenarios and iterations.
  */
-internal class SpringTestContext private constructor(
+class SpringTestContext private constructor(
     val context: ConfigurableApplicationContext,
     val port: Int,
 ) : AutoCloseable {

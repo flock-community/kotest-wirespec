@@ -23,7 +23,7 @@ import java.time.Duration
  * 4xx/5xx responses are folded back into a successful [Wirespec.RawResponse]
  * via `onErrorResume` so the DSL can still inspect the typed error variant.
  */
-internal class WebClientTransportation(
+class WebClientTransportation(
     private val client: WebClient,
 ) : Wirespec.Transportation {
 
