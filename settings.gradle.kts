@@ -3,11 +3,12 @@ pluginManagement {
         mavenCentral()
         gradlePluginPortal()
     }
-    // Composite-included build: the Gradle plugin lives at ./plugin/ as its own
-    // Gradle build. Substituting via pluginManagement lets `:example` apply the
-    // plugin with `plugins { id("io.kotest.extensions.spring.wirespec") }` and
-    // pick up the in-source version — no publishToMavenLocal round-trip.
-    includeBuild("plugin")
+    // Composite-included build: the Gradle plugin lives at ./gradle-plugin/ as
+    // its own Gradle build. Substituting via pluginManagement lets `:example`
+    // apply the plugin with
+    // `plugins { id("io.kotest.extensions.spring.wirespec") }` and pick up the
+    // in-source version — no publishToMavenLocal round-trip.
+    includeBuild("gradle-plugin")
 }
 
 dependencyResolutionManagement {
