@@ -125,7 +125,7 @@ class PetScenariosSpec : FunSpec({
     val ws = install(SpringWirespecExtension(ExampleApplication::class))
 
     test("pet CRUD") {
-        checkAll(iterations = 10) {
+        checkAll<Int>(iterations = 10) {
             scenario(ws.context) {
                 val petId = createPet
                     .returning<CreatePet.Response201, String> { it.body.id }
@@ -144,6 +144,10 @@ class PetScenariosSpec : FunSpec({
     }
 })
 ```
+
+> The explicit `<Int>` is needed because Kotest 6's no-Arb `checkAll` overload
+> always synthesizes a value — there is no zero-value form. `Int` is a
+> conventional dummy; the synthesized value is unused inside `scenario { … }`.
 
 A consumer who wants a single deterministic run skips `checkAll`:
 
@@ -177,7 +181,7 @@ class PetScenariosJUnitTest {
 
     @Test
     fun `pet CRUD`() = runBlocking {
-        checkAll(iterations = 10) {
+        checkAll<Int>(iterations = 10) {
             scenario(ctx) {
                 val petId = createPet
                     .returning<CreatePet.Response201, String> { it.body.id }
@@ -230,7 +234,7 @@ edits:
 1. Replace `: SpringScenarioSpec(App::class, { … })` with
    `: FunSpec({ val ws = install(SpringWirespecExtension(App::class)); … })`.
 2. Wrap each existing `scenario("name", iterations = N) { … }` body in
-   `test("name") { checkAll(iterations = N) { scenario(ws.context) { … } } }`.
+   `test("name") { checkAll<Int>(iterations = N) { scenario(ws.context) { … } } }`.
 3. Delete the import of `io.kotest.extensions.spring.wirespec.SpringScenarioSpec`.
 
 The block bodies themselves are unchanged.

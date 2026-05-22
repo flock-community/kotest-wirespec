@@ -185,7 +185,7 @@ class ScenarioTest : FunSpec({
         val iterations = 5
         val counter = AtomicInteger(0)
 
-        checkAll(iterations = iterations) {
+        checkAll<Int>(iterations = iterations) {
             scenario(ctx) {
                 // intentionally empty: no endpoint calls registered
                 counter.incrementAndGet()
@@ -325,7 +325,7 @@ import kotlin.reflect.KClass
  *     val ws = install(SpringWirespecExtension(MyApp::class))
  *
  *     test("…") {
- *         checkAll(iterations = 10) {
+ *         checkAll<Int>(iterations = 10) {
  *             scenario(ws.context) { … }
  *         }
  *     }
@@ -456,7 +456,7 @@ class PetScenariosSpec : FunSpec({
     val ws = install(SpringWirespecExtension(ExampleApplication::class))
 
     test("pet CRUD") {
-        checkAll(iterations = 10) {
+        checkAll<Int>(iterations = 10) {
             scenario(ws.context) {
                 val petId = createPet
                     .returning<CreatePet.Response201, String> { it.body.id }
@@ -487,7 +487,7 @@ class PetScenariosSpec : FunSpec({
     }
 
     test("typesafe queries") {
-        checkAll(iterations = 8) {
+        checkAll<Int>(iterations = 8) {
             scenario(ws.context) {
                 (1..25).forEach { _ ->
                     createPet.expecting<CreatePet.Response201>()
@@ -581,7 +581,7 @@ class PetScenariosJUnitTest {
 
     @Test
     fun `pet CRUD`() = runBlocking {
-        checkAll(iterations = 10) {
+        checkAll<Int>(iterations = 10) {
             scenario(ctx) {
                 val petId = createPet
                     .returning<CreatePet.Response201, String> { it.body.id }
@@ -603,7 +603,7 @@ class PetScenariosJUnitTest {
 
     @Test
     fun `typesafe queries`() = runBlocking {
-        checkAll(iterations = 8) {
+        checkAll<Int>(iterations = 8) {
             scenario(ctx) {
                 repeat(25) { createPet.expecting<CreatePet.Response201>() }
                 listPets
