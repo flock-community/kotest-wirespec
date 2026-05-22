@@ -11,12 +11,13 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import kotlin.reflect.KClass
 
 /**
- * Minimal Spring Boot lifecycle harness for `SpringScenarioSpec`.
+ * Minimal Spring Boot lifecycle harness used by `SpringWirespecExtension` (and
+ * by JUnit consumers who want to manage the lifecycle themselves).
  *
  * We don't use Spring's `TestContextManager` directly because it's deeply tied
  * to JUnit's lifecycle, and we don't use `kotest-extensions-spring` because the
- * 1.x line is wire-incompatible with Kotest 6 (see SpringScenarioSpec for the
- * rationale).
+ * 1.x line is wire-incompatible with Kotest 6 (SpecRef.Reference arity mismatch
+ * against `kotest-runner-junit5:6.1.x`).
  *
  * Instead, we boot the application via [SpringApplication] with the web
  * environment set to a random port, capture the actual port via a Boot lifecycle

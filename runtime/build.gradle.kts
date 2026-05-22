@@ -20,8 +20,8 @@ dependencies {
     api("community.flock.wirespec.integration:wirespec-jvm:$wirespecVersion")
     api("community.flock.wirespec.integration:jackson-jvm:$wirespecVersion")
 
-    // Kotest core + property-based testing — public surface (consumers extend
-    // `SpringScenarioSpec : FunSpec`, use `Arb`, write `shouldBe…` assertions).
+    // Kotest core + property-based testing — public surface (consumers write
+    // `checkAll { scenario(ctx) { ... } }`, use `Arb`, write `shouldBe…` assertions).
     api("io.kotest:kotest-runner-junit5:$kotestVersion")
     api("io.kotest:kotest-property:$kotestVersion")
     api("io.kotest:kotest-assertions-core:$kotestVersion")
@@ -36,7 +36,7 @@ dependencies {
     // Note: kotest-extensions-spring 1.3.x is built against Kotest 5.x and
     // conflicts at runtime with kotest-runner-junit5:6.1.x (SpecRef.Reference
     // arity mismatch). Until a 6.x-compatible release is available we wire the
-    // Spring boot lifecycle manually in SpringScenarioSpec.
+    // Spring boot lifecycle manually via SpringTestContext + SpringWirespecExtension.
     api("org.springframework.boot:spring-boot-starter-test:$springBootVersion") {
         exclude(group = "org.junit.vintage", module = "junit-vintage-engine")
     }

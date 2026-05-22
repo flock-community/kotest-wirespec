@@ -26,7 +26,8 @@ import kotlin.random.Random
  *     with slot setters that accept Arbs (`body(arb.of<CreatePetRequest>())`).
  *
  * The per-iteration [RandomSource] threads into the underlying kotest generator's
- * seed so failures are reproducible (the SpringScenarioSpec prints the seed).
+ * seed so failures are reproducible (kotest-property's `checkAll` prints the seed
+ * on failure).
  */
 @WirespecScenarioDsl
 class ArbReceiver internal constructor(
