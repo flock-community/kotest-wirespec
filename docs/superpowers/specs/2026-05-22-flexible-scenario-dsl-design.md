@@ -90,7 +90,7 @@ suspend fun PropertyContext.scenario(
     ctx: WirespecTestContext,
     block: ScenarioBuilder.() -> Unit,
 ) {
-    val rs = randomSource
+    val rs = randomSource()
     val arb = ArbReceiver(rs)
     val builder = ScenarioBuilder(arb).apply(block)
     try {
