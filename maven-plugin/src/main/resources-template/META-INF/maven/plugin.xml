@@ -70,13 +70,6 @@
           <editable>false</editable>
           <description>The Maven session (injected).</description>
         </parameter>
-        <parameter>
-          <name>pluginManager</name>
-          <type>org.apache.maven.plugin.BuildPluginManager</type>
-          <required>true</required>
-          <editable>false</editable>
-          <description>Build plugin manager (injected).</description>
-        </parameter>
       </parameters>
       <configuration>
         <basePackage implementation="java.lang.String">${'$'}{kotestWirespecSpring.basePackage}</basePackage>
@@ -86,6 +79,12 @@
         <project implementation="org.apache.maven.project.MavenProject" default-value="${'$'}{project}"/>
         <session implementation="org.apache.maven.execution.MavenSession" default-value="${'$'}{session}"/>
       </configuration>
+      <requirements>
+        <requirement>
+          <role>org.apache.maven.plugin.BuildPluginManager</role>
+          <field-name>pluginManager</field-name>
+        </requirement>
+      </requirements>
     </mojo>
   </mojos>
 </plugin>

@@ -47,7 +47,10 @@ dependencies {
     // jackson-module-kotlin gives us `jacksonObjectMapper()`, the ObjectMapper
     // the WirespecSerialization needs in order to handle Kotlin data classes.
     // The Spring Boot Jackson starter doesn't pull this in transitively.
-    api("com.fasterxml.jackson.module:jackson-module-kotlin")
+    // Pinned explicitly (rather than letting Spring's BOM resolve it) so the
+    // published Maven POM carries a version — without it, Maven consumers see
+    // an invalid POM and lose all transitive deps from this artifact.
+    api("com.fasterxml.jackson.module:jackson-module-kotlin:2.18.2")
 
     testImplementation("io.kotest:kotest-runner-junit5:$kotestVersion")
     testImplementation("io.kotest:kotest-assertions-core:$kotestVersion")

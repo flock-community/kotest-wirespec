@@ -101,7 +101,10 @@ class KotestWirespecSpringMojo : AbstractMojo() {
 
         const val WIRESPEC_GROUP = "community.flock.wirespec.plugin.maven"
         const val WIRESPEC_ARTIFACT = "wirespec-maven-plugin"
-        const val WIRESPEC_VERSION = "0.17.20"
+        // Must match the wirespecVersion used by emitter/ — see gradle.properties.
+        // Mismatched versions cause Arrow 1.x vs 2.x classloader incompatibility
+        // when the upstream compiler and our emitter share a plugin realm.
+        const val WIRESPEC_VERSION = "0.19.0-RC.3"
 
         const val EMITTER_GROUP = "io.kotest.extensions"
         const val EMITTER_ARTIFACT = "kotest-extensions-spring-wirespec-emitter"
