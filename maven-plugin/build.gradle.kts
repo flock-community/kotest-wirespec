@@ -57,6 +57,30 @@ publishing {
     }
 }
 
+// The integration test invokes `mvn verify` against a fixture that pulls
+// emitter, runtime, and this plugin from ~/.m2. Install all three first.
+// Shell out to the outer Gradle wrapper because emitter is its own composite
+// build and runtime lives in the outer composite — neither is addressable
+// from maven-plugin/'s task graph. Gradle 9 removed Project.exec from build
+// scripts, so we wire dedicated Exec tasks instead.
+val outerRoot = project.rootDir.parentFile
+val outerGradlew = outerRoot.resolve("gradlew").absolutePath
+
+val publishEmitterToMavenLocal by tasks.registering(Exec::class) {
+    workingDir = outerRoot.resolve("emitter")
+    commandLine(outerGradlew, "--no-daemon", "publishToMavenLocal")
+}
+
+val publishRuntimeToMavenLocal by tasks.registering(Exec::class) {
+    workingDir = outerRoot
+    commandLine(outerGradlew, "--no-daemon", ":runtime:publishToMavenLocal")
+}
+
 tasks.test {
     useJUnitPlatform()
+    dependsOn(
+        publishEmitterToMavenLocal,
+        publishRuntimeToMavenLocal,
+        tasks.named("publishToMavenLocal"),
+    )
 }
