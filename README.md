@@ -18,7 +18,46 @@ kotestWirespecSpring {
 }
 ```
 
-That's the whole setup. Each `gradle test` now does:
+…or, in Maven:
+
+```xml
+<plugin>
+    <groupId>io.kotest.extensions</groupId>
+    <artifactId>kotest-extensions-spring-wirespec-maven-plugin</artifactId>
+    <version>0.1.0</version>
+    <executions>
+        <execution>
+            <goals><goal>generate</goal></goals>
+            <configuration>
+                <basePackage>com.example.api</basePackage>
+            </configuration>
+        </execution>
+    </executions>
+</plugin>
+```
+
+Maven users also need to point the Kotlin Maven plugin at the generated dir as a test source root — unlike Gradle's Kotlin plugin, it doesn't auto-discover Maven test source roots:
+
+```xml
+<plugin>
+    <groupId>org.jetbrains.kotlin</groupId>
+    <artifactId>kotlin-maven-plugin</artifactId>
+    <executions>
+        <execution>
+            <id>test-compile</id>
+            <goals><goal>test-compile</goal></goals>
+            <configuration>
+                <sourceDirs>
+                    <sourceDir>${project.basedir}/src/test/kotlin</sourceDir>
+                    <sourceDir>${project.build.directory}/generated-sources/wirespec</sourceDir>
+                </sourceDirs>
+            </configuration>
+        </execution>
+    </executions>
+</plugin>
+```
+
+That's the whole setup. Each `gradle test` (or `mvn verify`) now does:
 
 ```
 @RestController + @ApiResponses
