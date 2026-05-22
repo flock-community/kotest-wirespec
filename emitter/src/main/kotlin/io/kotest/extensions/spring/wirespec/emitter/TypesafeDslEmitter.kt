@@ -6,6 +6,7 @@ import community.flock.wirespec.compiler.core.emit.Emitted
 import community.flock.wirespec.compiler.core.emit.PackageName
 import community.flock.wirespec.compiler.core.parse.ast.AST
 import community.flock.wirespec.compiler.core.parse.ast.Endpoint
+import community.flock.wirespec.compiler.core.parse.ast.Type
 import community.flock.wirespec.compiler.utils.Logger
 import community.flock.wirespec.emitters.kotlin.KotlinIrEmitter
 
@@ -16,10 +17,11 @@ open class TypesafeDslEmitter(
 
     override fun emit(ast: AST, logger: Logger): NonEmptyList<Emitted> {
         val base = super.emit(ast, logger)
-        val dsl = ast.modules.toList()
-            .flatMap { it.statements.toList() }
+        val statements = ast.modules.toList().flatMap { it.statements.toList() }
+        val types = statements.filterIsInstance<Type>().associateBy { it.identifier.value }
+        val dsl = statements
             .filterIsInstance<Endpoint>()
-            .map { DslFileEmitter.emit(it, packageName) }
+            .map { DslFileEmitter.emit(it, packageName, types) }
         return if (dsl.isEmpty()) base else NonEmptyList(base.head, base.tail + dsl)
     }
 }

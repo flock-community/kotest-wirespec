@@ -3,13 +3,18 @@ package io.kotest.extensions.spring.wirespec.emitter
 import community.flock.wirespec.compiler.core.emit.Emitted
 import community.flock.wirespec.compiler.core.emit.PackageName
 import community.flock.wirespec.compiler.core.parse.ast.Endpoint
+import community.flock.wirespec.compiler.core.parse.ast.Type
 import community.flock.wirespec.ir.core.file
 import community.flock.wirespec.ir.generator.KotlinGenerator
 
 object DslFileEmitter {
 
-    fun emit(endpoint: Endpoint, packageName: PackageName): Emitted {
-        val shape = EndpointShape.from(endpoint)
+    fun emit(
+        endpoint: Endpoint,
+        packageName: PackageName,
+        types: Map<String, Type> = emptyMap(),
+    ): Emitted {
+        val shape = EndpointShape.from(endpoint, types)
         val kotestPkg = "${packageName.value}.kotest"
         val endpointPkg = "${packageName.value}.endpoint"
         val modelPkg = "${packageName.value}.model"
@@ -25,13 +30,15 @@ object DslFileEmitter {
             import("kotlin.time", "Duration")
             import(endpointPkg, shape.name)
             if (shape.bodyType != null) {
-                import("community.flock.wirespec.integration.kotest", "KotestWirespecGeneratorBuilder")
                 import("io.kotest.property", "Arb")
             }
             shape.modelImports.forEach { import(modelPkg, it) }
 
             raw(renderExtensionFunction(shape))
             raw(renderCallClass(shape))
+            if (shape.bodyType != null && shape.bodyFields.isNotEmpty()) {
+                raw(renderBodyBuilder(shape.bodyType, shape.bodyFields))
+            }
         }
 
         return Emitted(file = filePath, result = KotlinGenerator.generate(irFile))
@@ -99,8 +106,25 @@ object DslFileEmitter {
         appendLine("        apply { inner.body(value) }")
         appendLine("    public fun body(arb: Arb<$bodyType>): $call =")
         appendLine("        apply { inner.body(arb) }")
-        appendLine("    public fun body(overrides: KotestWirespecGeneratorBuilder.() -> Unit): $call =")
-        appendLine("        apply { inner.body(overrides) }")
+        if (shape.bodyFields.isNotEmpty()) {
+            appendLine("    public fun body(block: ${bodyType}BodyBuilder.() -> Unit): $call = apply {")
+            appendLine("        val builder = ${bodyType}BodyBuilder().apply(block)")
+            appendLine("        inner.body {")
+            shape.bodyFields.forEach { f ->
+                appendLine("            builder.${f.name}?.let { registerPath(\"${f.name}\") { it } }")
+            }
+            appendLine("        }")
+            appendLine("    }")
+        }
+    }
+
+    private fun renderBodyBuilder(bodyType: String, fields: List<EndpointShape.NamedTypedField>): String = buildString {
+        appendLine("@WirespecScenarioDsl")
+        appendLine("public class ${bodyType}BodyBuilder {")
+        fields.forEach { f ->
+            appendLine("    public var ${f.name}: Arb<${f.kotlinType}>? = null")
+        }
+        append("}")
     }
 
     private fun renderResponseDsl(shape: EndpointShape): String = buildString {

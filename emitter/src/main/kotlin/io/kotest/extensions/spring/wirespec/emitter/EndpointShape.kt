@@ -2,26 +2,23 @@ package io.kotest.extensions.spring.wirespec.emitter
 
 import community.flock.wirespec.compiler.core.parse.ast.Endpoint
 import community.flock.wirespec.compiler.core.parse.ast.Reference
+import community.flock.wirespec.compiler.core.parse.ast.Type
 
-/**
- * Slot summary used by [DslFileEmitter] to decide which DSL methods to render.
- */
 data class EndpointShape(
     val name: String,
     val pathFields: List<NamedTypedField>,
     val queryFields: List<NamedTypedField>,
     val headerFields: List<NamedTypedField>,
     val bodyType: String?,
-    /** Simple names of Custom (model) types referenced by any slot, in declaration order, de-duplicated. */
+    val bodyFields: List<NamedTypedField>,
     val modelImports: List<String>,
 ) {
-    /** `PetGet` -> `petGet`. */
     val dslName: String get() = name.replaceFirstChar(Char::lowercaseChar)
 
     data class NamedTypedField(val name: String, val kotlinType: String)
 
     companion object {
-        fun from(endpoint: Endpoint): EndpointShape {
+        fun from(endpoint: Endpoint, types: Map<String, Type> = emptyMap()): EndpointShape {
             val pathFields = endpoint.path
                 .filterIsInstance<Endpoint.Segment.Param>()
                 .map { NamedTypedField(it.identifier.value, KotlinTypeMapper.map(it.reference)) }
@@ -31,6 +28,11 @@ data class EndpointShape(
                 .map { NamedTypedField(it.identifier.value, KotlinTypeMapper.map(it.reference)) }
             val bodyRef = endpoint.requests.firstOrNull()?.content?.reference
             val bodyType = bodyRef?.let { if (it is Reference.Unit) null else KotlinTypeMapper.map(it) }
+            val bodyFields = (bodyRef as? Reference.Custom)
+                ?.let { types[it.value] }
+                ?.shape?.value
+                ?.map { NamedTypedField(it.identifier.value, KotlinTypeMapper.map(it.reference)) }
+                ?: emptyList()
 
             val refs = buildList {
                 endpoint.path.filterIsInstance<Endpoint.Segment.Param>().forEach { add(it.reference) }
@@ -46,6 +48,7 @@ data class EndpointShape(
                 queryFields = queryFields,
                 headerFields = headerFields,
                 bodyType = bodyType,
+                bodyFields = bodyFields,
                 modelImports = modelImports,
             )
         }

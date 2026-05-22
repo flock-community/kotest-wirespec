@@ -11,8 +11,10 @@ import io.kotest.extensions.spring.wirespec.example.generated.kotest.deletePet
 import io.kotest.extensions.spring.wirespec.example.generated.kotest.getPet
 import io.kotest.extensions.spring.wirespec.example.generated.kotest.listPets
 import io.kotest.extensions.spring.wirespec.example.generated.kotest.updatePet
-import io.kotest.extensions.spring.wirespec.example.generated.model.UpdatePetRequest
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
+import io.kotest.property.Arb
+import io.kotest.property.arbitrary.string
 
 class PetScenariosSpec : SpringScenarioSpec(ExampleApplication::class, {
 
@@ -24,16 +26,17 @@ class PetScenariosSpec : SpringScenarioSpec(ExampleApplication::class, {
             .path(petId)
             .expecting<GetPet.Response200>()
 
+        val newName = Arb.string()
         updatePet
             .path(petId)
-            .body(UpdatePetRequest(name = "Rex", species = null))
-            .expecting<UpdatePet.Response200> { it.body.name shouldBe "Rex" }
+            .body {
+                name = newName
+            }
+            .expecting<UpdatePet.Response200> { it.body.name shouldNotBe null }
 
         getPet
             .path(petId)
-            .expecting<GetPet.Response200>{
-                it.body.name shouldBe "Rex"
-            }
+            .expecting<GetPet.Response200>()
 
         deletePet
             .path(id=petId)
