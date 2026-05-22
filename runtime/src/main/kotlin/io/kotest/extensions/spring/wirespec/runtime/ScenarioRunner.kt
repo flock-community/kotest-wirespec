@@ -48,7 +48,7 @@ internal class ScenarioRunner(
 
     private fun runOne(call: EndpointCallBuilder<*, *, *>, index: Int) {
         val reflection = call.reflection
-        val request = reflection.buildRequest(resolveSlots(call, reflection))
+        val request = reflection.buildRequest(resolveSlots(call, reflection, index))
 
         // Typed transport via the Wirespec.Client's ClientEdge — no reflection
         // on toRawRequest/fromRawResponse. At the boundary between our generic
@@ -92,7 +92,7 @@ internal class ScenarioRunner(
      *     they have fields that line up with constructor params, in which case
      *     the user must supply them. (Phase 5 will extend defaults here.)
      */
-    private fun resolveSlots(call: EndpointCallBuilder<*, *, *>, reflection: EndpointReflection): Map<String, Any?> {
+    private fun resolveSlots(call: EndpointCallBuilder<*, *, *>, reflection: EndpointReflection, index: Int): Map<String, Any?> {
         val args = mutableMapOf<String, Any?>()
 
         // body slot: precedence is user-literal/Arb/Ref > registerPath/Field overrides
@@ -106,14 +106,17 @@ internal class ScenarioRunner(
                     .firstOrNull { it.name == "body" }
                     ?.type
                     ?: error("${reflection.endpointName}: hasBody=true but no `body` constructor param.")
-                val generator = call.bodyOverrides?.let { overrides ->
-                    // Build a per-call generator seeded off the iteration RandomSource
-                    // so reproducibility holds; the user's overrides layer on top.
+                // Default Arb generation reuses the iteration-scoped shared generator, whose path-keyed seeding
+                // would collapse repeated same-endpoint calls onto identical bodies. Prefix the call index so each
+                // call gets a distinct root path and therefore a distinct seed per field. The override branch
+                // already varies (fresh per-call generator) and prepending here would silently break
+                // user-registered single-segment path overrides (matching is exact-length).
+                val (generator, rootPath) = call.bodyOverrides?.let { overrides ->
                     kotestWirespecKotlinGenerator(seed = randomSource.random.nextLong()) {
                         overrides()
-                    }
-                } ?: arbReceiver.generator
-                args["body"] = arbReceiver.generatorFor(bodyType).generate(generator, emptyList())
+                    } to emptyList<String>()
+                } ?: (arbReceiver.generator to listOf("#$index"))
+                args["body"] = arbReceiver.generatorFor(bodyType).generate(generator, rootPath)
             }
         }
 
