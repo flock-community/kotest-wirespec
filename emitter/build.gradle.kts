@@ -1,6 +1,7 @@
 plugins {
     kotlin("jvm") version "2.3.0"
     `java-library`
+    `maven-publish`
 }
 
 group = "io.kotest.extensions"
@@ -8,6 +9,7 @@ version = (providers.gradleProperty("version").orNull) ?: "0.1.0-SNAPSHOT"
 
 java {
     toolchain { languageVersion = JavaLanguageVersion.of(21) }
+    withSourcesJar()
 }
 
 val wirespecVersion = "0.19.0-RC.3"
@@ -24,4 +26,17 @@ dependencies {
 
 tasks.test {
     useJUnitPlatform()
+}
+
+publishing {
+    publications {
+        create<MavenPublication>("maven") {
+            from(components["java"])
+            artifactId = "kotest-extensions-spring-wirespec-emitter"
+            pom {
+                name.set("Kotest Spring Wirespec Emitter")
+                description.set("TypesafeDslEmitter: Wirespec Emitter that produces a typesafe Kotest DSL per endpoint.")
+            }
+        }
+    }
 }
