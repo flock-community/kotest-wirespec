@@ -72,32 +72,49 @@ That's the whole setup. Each `gradle test` (or `mvn verify`) now does:
   build/generated/wirespec/.../kotest/*Dsl.kt
         │
         ▼
-  PetScenariosSpec → live Spring Boot on a random port
+  checkAll { scenario(ctx) { … } } → live Spring Boot on a random port
 ```
 
 ## What your tests look like
 
 ```kotlin
-class PetScenariosSpec : SpringScenarioSpec(MyApp::class, {
+import io.kotest.core.extensions.install
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.extensions.spring.wirespec.kotest.SpringWirespecExtension
+import io.kotest.extensions.spring.wirespec.scenario
+import io.kotest.property.checkAll
 
-    scenario("pet CRUD", iterations = 50) {
-        val petId = createPet
-            .returning<CreatePet.Response201, String> { it.body.id }
+class PetScenariosSpec : FunSpec({
 
-        getPet
-            .path(petId)
-            .expecting<GetPet.Response200>()
+    val ws = install(SpringWirespecExtension(MyApp::class))
 
-        updatePet
-            .path(petId)
-            .body(UpdatePetRequest(name = "Rex", species = null))
-            .expecting<UpdatePet.Response200> { it.body.name shouldBe "Rex" }
+    test("pet CRUD") {
+        checkAll<Int>(iterations = 50) {
+            scenario(ws.context) {
+                val petId = createPet
+                    .returning<CreatePet.Response201, String> { it.body.id }
 
-        deletePet.path(petId).expecting<DeletePet.Response204>()
-        getPet.path(petId).expecting<GetPet.Response404>()
+                getPet
+                    .path(petId)
+                    .expecting<GetPet.Response200>()
+
+                updatePet
+                    .path(petId)
+                    .body(UpdatePetRequest(name = "Rex", species = null))
+                    .expecting<UpdatePet.Response200> { it.body.name shouldBe "Rex" }
+
+                deletePet.path(petId).expecting<DeletePet.Response204>()
+                getPet.path(petId).expecting<GetPet.Response404>()
+            }
+        }
     }
 })
 ```
+
+The DSL itself is spec-style-agnostic — drop `scenario(ctx) { … }` into any
+Kotest spec (FunSpec, BehaviorSpec, ShouldSpec, …) or into a JUnit Jupiter
+`@Test` method via `@SpringBootTest(webEnvironment = RANDOM_PORT)`. See
+`example/src/test/kotlin/.../PetScenariosJUnitTest.kt` for the JUnit variant.
 
 Every identifier you see — `createPet`, `getPet`, `Response201`, `Response404`, `CreatePetRequest` — was generated from your controller this build. Rename a method, change a path parameter, drop a `@ApiResponse` annotation: the test won't compile.
 
@@ -125,7 +142,7 @@ Failures carry `scenario · iteration · seed · endpoint · raw response · con
 
 ### Property-based by default
 
-Each `scenario(iterations = N)` runs N times with a seeded `RandomSource`. Unset slots (`body`, `path`, `query`, `header`) default to `Arb<T>` generators derived from the Wirespec types — you get random valid payloads for free. Pin only what your scenario actually cares about.
+Wrap a `scenario(ctx) { … }` block in `checkAll<Int>(iterations = N) { … }` and it runs N times with a seeded `RandomSource` threaded through kotest-property — failures print the seed for free. Unset slots (`body`, `path`, `query`, `header`) default to `Arb<T>` generators derived from the Wirespec types — you get random valid payloads for free. Pin only what your scenario actually cares about.
 
 ### Slot ergonomics: only what exists
 
