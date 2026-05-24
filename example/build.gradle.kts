@@ -40,5 +40,9 @@ kotestWirespecSpring {
 }
 
 tasks.withType<Test> {
-    useJUnitPlatform()
+    useJUnitPlatform {
+        // Explicitly include both engines so JUnit Jupiter tests
+        // (PetScenariosJUnitTest) run alongside Kotest specs.
+        includeEngines("kotest", "junit-jupiter")
+    }
 }

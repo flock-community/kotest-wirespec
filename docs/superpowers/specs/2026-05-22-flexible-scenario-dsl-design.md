@@ -187,7 +187,7 @@ class PetScenariosJUnitTest {
     }
 
     @Test
-    fun `pet CRUD`() = runBlocking {
+    fun `pet CRUD`(): Unit = runBlocking {
         checkAll<Int>(iterations = 10) {
             scenario(ctx) {
                 val petId = createPet
@@ -203,6 +203,22 @@ class PetScenariosJUnitTest {
 
 Same three layers as the Kotest example — `@Test … = runBlocking { checkAll {
 scenario(ctx) { … } } }` — with an identical inner DSL body.
+
+Two JUnit-specific notes:
+
+- The explicit `: Unit` return type on `@Test` methods is required because
+  `checkAll` returns `PropertyContext`, and JUnit Jupiter only discovers
+  methods that return `void`/`Unit`. Without it, Jupiter silently skips the
+  method.
+- The example module's Gradle test task must explicitly request both engines
+  so Jupiter and Kotest both run:
+  ```kotlin
+  tasks.withType<Test> {
+      useJUnitPlatform { includeEngines("kotest", "junit-jupiter") }
+  }
+  ```
+  Pure-JUnit consumers can omit `"kotest"`; pure-Kotest consumers can omit
+  `"junit-jupiter"`.
 
 ## Files touched
 
