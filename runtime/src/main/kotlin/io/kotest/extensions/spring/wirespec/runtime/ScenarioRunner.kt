@@ -45,6 +45,10 @@ internal class ScenarioRunner(
         for ((index, step) in scenario.steps.withIndex()) {
             when (step) {
                 is Step.Endpoint -> runOne(step.call, index)
+                is Step.Channel -> error(
+                    "Scenario step #${index + 1} (${step.call.reflection.channelName}): " +
+                        "channel steps are wired in a later commit (Phase E)."
+                )
             }
         }
     }
