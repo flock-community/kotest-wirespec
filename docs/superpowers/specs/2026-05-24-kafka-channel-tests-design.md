@@ -213,25 +213,24 @@ class WirespecChannelContext(
 
 ```kotlin
 class EmbeddedKafkaMessageTransport(
-    private val applicationContext: ApplicationContext,
+    applicationContext: ApplicationContext,
 ) : MessageTransport {
 
-    private val producer: KafkaTemplate<String, ByteArray> by lazy {
-        applicationContext.getBeanProvider(
-            ResolvableType.forClassWithGenerics(
-                KafkaTemplate::class.java, String::class.java, ByteArray::class.java
-            )
-        ).getIfAvailable()
-            ?: error("No KafkaTemplate<String, ByteArray> bean is available. " +
-                "Annotate the spec with @EmbeddedKafka(topics = [...]) and ensure " +
-                "spring-kafka is on the test classpath.")
-    }
-
-    private val brokers: String by lazy {
+    private val brokers: String =
         applicationContext.getBean(EmbeddedKafkaBroker::class.java).brokersAsString
+
+    private val producer: KafkaProducer<String, ByteArray> by lazy {
+        KafkaProducer(
+            mapOf(
+                ProducerConfig.BOOTSTRAP_SERVERS_CONFIG to brokers,
+                ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG to StringSerializer::class.java,
+                ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG to ByteArraySerializer::class.java,
+                ProducerConfig.CLIENT_ID_CONFIG to "wirespec-test-${UUID.randomUUID()}",
+            )
+        )
     }
 
-    override suspend fun publish(record: OutgoingRecord) { /* KafkaTemplate.send + .get */ }
+    override suspend fun publish(record: OutgoingRecord) { /* producer.send(ProducerRecord(...)).get(...) */ }
     override suspend fun receive(topic: String, atLeast: Int, within: Duration): List<IncomingRecord> {
         // One short-lived KafkaConsumer<String, ByteArray> per call:
         //   - random group.id
@@ -244,10 +243,12 @@ class EmbeddedKafkaMessageTransport(
 
 Key decisions:
 
-- **`KafkaTemplate<String, ByteArray>`** so the runtime pre-serializes via
-  `Wirespec.Serialization`. Avoids forcing the test app to register a typed
-  `ProducerFactory<*, MyDto>` and avoids competing with the app's serializer
-  config.
+- **Transport owns its own `KafkaProducer<String, ByteArray>`** built from
+  `EmbeddedKafkaBroker.brokersAsString`. Avoids fishing a typed
+  `KafkaTemplate<*, *>` bean out of the application context — that would
+  fight with the app's own producer-serializer config. The runtime
+  pre-serializes payloads via `Wirespec.Serialization`, hands raw bytes to
+  the producer.
 - **Per-call short-lived consumer.** No long-running poll loop, no shared
   state across scenario iterations. Random group id +
   `auto.offset.reset=earliest` so the consumer always sees records published
