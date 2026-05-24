@@ -84,9 +84,37 @@ internal class ScenarioRunner(
                 }
             }
             ChannelCallBuilder.Direction.Expect,
-            ChannelCallBuilder.Direction.Collect ->
-                error("Scenario step #${index + 1} (${call.reflection.channelName}): " +
-                    "receive direction not yet supported in this commit.")
+            ChannelCallBuilder.Direction.Collect -> {
+                val (atLeast, within) = call.receivePolicy()
+                val records = runBlocking { ctx.messaging.receive(topic, atLeast, within) }
+                val validator = ChannelValidator(call.reflection, ctx.serialization)
+                val typed = records.map { rec ->
+                    try {
+                        validator.deserialize(rec.body)
+                    } catch (t: Throwable) {
+                        throw AssertionError(
+                            "Scenario step #${index + 1} (${call.reflection.channelName}) failed to " +
+                                "decode record on topic '$topic': ${t.message}",
+                            t,
+                        )
+                    }
+                }
+                if (call.direction == ChannelCallBuilder.Direction.Expect) {
+                    val one = typed.singleOrNull()
+                        ?: throw AssertionError(
+                            "Scenario step #${index + 1} (${call.reflection.channelName}): " +
+                                "expected exactly 1 message on '$topic' within $within, got ${typed.size}."
+                        )
+                    call.customAssertion?.invoke(one)
+                    call.returningProjection?.let { proj ->
+                        @Suppress("UNCHECKED_CAST")
+                        val ref = call.returnedRef as ResultRef<Any?>
+                        ref.set(proj.invoke(one))
+                    }
+                } else {
+                    call.customAssertion?.invoke(typed)
+                }
+            }
             null -> error("Scenario step #${index + 1} (${call.reflection.channelName}): " +
                 "set .send(...) or .expecting()/.collecting(...) before running the scenario.")
         }
