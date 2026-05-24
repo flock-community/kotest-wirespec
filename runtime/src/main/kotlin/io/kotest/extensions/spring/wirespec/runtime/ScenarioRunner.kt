@@ -7,6 +7,7 @@ import io.kotest.extensions.spring.wirespec.dsl.EndpointCallBuilder
 import io.kotest.extensions.spring.wirespec.dsl.Input
 import io.kotest.extensions.spring.wirespec.dsl.ResultRef
 import io.kotest.extensions.spring.wirespec.dsl.ScenarioBuilder
+import io.kotest.extensions.spring.wirespec.dsl.Step
 import io.kotest.extensions.spring.wirespec.validation.ContractValidator
 import io.kotest.extensions.spring.wirespec.validation.EndpointReflection
 import io.kotest.property.RandomSource
@@ -41,8 +42,10 @@ internal class ScenarioRunner(
 ) {
 
     fun run() {
-        for ((index, call) in scenario.calls.withIndex()) {
-            runOne(call, index)
+        for ((index, step) in scenario.steps.withIndex()) {
+            when (step) {
+                is Step.Endpoint -> runOne(step.call, index)
+            }
         }
     }
 

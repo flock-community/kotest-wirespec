@@ -7,7 +7,7 @@ class ScenarioBuilder internal constructor(
     val arb: ArbReceiver,
 ) {
 
-    internal val calls: MutableList<EndpointCallBuilder<*, *, *>> = mutableListOf()
+    internal val steps: MutableList<Step> = mutableListOf()
 
     fun <BodyT : Any, Req : Wirespec.Request<BodyT>, Resp : Wirespec.Response<*>> endpoint(
         client: Wirespec.Client<Req, Resp>,
@@ -16,10 +16,14 @@ class ScenarioBuilder internal constructor(
         EndpointCallBuilder(this, client, endpointObject)
 
     internal fun register(call: EndpointCallBuilder<*, *, *>) {
-        calls += call
+        steps += Step.Endpoint(call)
     }
 
     internal fun clearRefs() {
-        calls.forEach { it.returnedRef?.clear() }
+        steps.forEach { step ->
+            when (step) {
+                is Step.Endpoint -> step.call.returnedRef?.clear()
+            }
+        }
     }
 }
