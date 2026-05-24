@@ -2,12 +2,17 @@ package io.kotest.extensions.spring.wirespec.runtime
 
 import community.flock.wirespec.integration.kotest.kotestWirespecKotlinGenerator
 import community.flock.wirespec.kotlin.Wirespec
+import io.kotest.extensions.spring.wirespec.WirespecChannelContext
+import io.kotest.extensions.spring.wirespec.WirespecTestContext
+import io.kotest.extensions.spring.wirespec.channel.OutgoingRecord
 import io.kotest.extensions.spring.wirespec.dsl.ArbReceiver
+import io.kotest.extensions.spring.wirespec.dsl.ChannelCallBuilder
 import io.kotest.extensions.spring.wirespec.dsl.EndpointCallBuilder
 import io.kotest.extensions.spring.wirespec.dsl.Input
 import io.kotest.extensions.spring.wirespec.dsl.ResultRef
 import io.kotest.extensions.spring.wirespec.dsl.ScenarioBuilder
 import io.kotest.extensions.spring.wirespec.dsl.Step
+import io.kotest.extensions.spring.wirespec.validation.ChannelValidator
 import io.kotest.extensions.spring.wirespec.validation.ContractValidator
 import io.kotest.extensions.spring.wirespec.validation.EndpointReflection
 import io.kotest.property.RandomSource
@@ -35,21 +40,55 @@ import kotlinx.coroutines.runBlocking
  */
 internal class ScenarioRunner(
     private val scenario: ScenarioBuilder,
-    private val transportation: Wirespec.Transportation,
-    private val serialization: Wirespec.Serialization,
+    private val endpointCtx: WirespecTestContext,
+    private val channelCtx: WirespecChannelContext?,
     private val randomSource: RandomSource,
     private val arbReceiver: ArbReceiver,
 ) {
+
+    private val transportation: Wirespec.Transportation get() = endpointCtx.transportation
+    private val serialization: Wirespec.Serialization get() = endpointCtx.serialization
 
     fun run() {
         for ((index, step) in scenario.steps.withIndex()) {
             when (step) {
                 is Step.Endpoint -> runOne(step.call, index)
-                is Step.Channel -> error(
-                    "Scenario step #${index + 1} (${step.call.reflection.channelName}): " +
-                        "channel steps are wired in a later commit (Phase E)."
-                )
+                is Step.Channel -> runChannel(step.call, index)
             }
+        }
+    }
+
+    private fun runChannel(call: ChannelCallBuilder<*>, index: Int) {
+        val ctx = channelCtx ?: error(
+            "Scenario step #${index + 1} (${call.reflection.channelName}) requires a channel context. " +
+                "Pass channelCtx to scenario(...) (or annotate the spec with @EmbeddedKafka and override " +
+                "SpringWirespecSpec.channelCtx)."
+        )
+        val topic = call.topicInput?.resolve(randomSource)
+            ?: error("Scenario step #${index + 1} (${call.reflection.channelName}): .topic(...) is required.")
+        val key = call.keyInput?.resolve(randomSource)
+
+        when (call.direction) {
+            ChannelCallBuilder.Direction.Send -> {
+                val payload = call.sendInput?.resolve(randomSource)
+                    ?: error("Scenario step #${index + 1} (${call.reflection.channelName}): " +
+                        ".send(...) value not set.")
+                val bytes = ctx.serialization.serializeBody(payload, call.reflection.payloadType)
+                runBlocking {
+                    ctx.messaging.publish(OutgoingRecord(topic, key, bytes))
+                }
+                call.returningProjection?.let { proj ->
+                    @Suppress("UNCHECKED_CAST")
+                    val ref = call.returnedRef as ResultRef<Any?>
+                    ref.set(proj.invoke(payload))
+                }
+            }
+            ChannelCallBuilder.Direction.Expect,
+            ChannelCallBuilder.Direction.Collect ->
+                error("Scenario step #${index + 1} (${call.reflection.channelName}): " +
+                    "receive direction not yet supported in this commit.")
+            null -> error("Scenario step #${index + 1} (${call.reflection.channelName}): " +
+                "set .send(...) or .expecting()/.collecting(...) before running the scenario.")
         }
     }
 
