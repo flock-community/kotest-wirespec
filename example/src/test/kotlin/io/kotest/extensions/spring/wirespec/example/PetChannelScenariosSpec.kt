@@ -40,17 +40,18 @@ class PetChannelScenariosSpec : SpringWirespecSpec({
             .expecting { it.id shouldBe petId.require() }
     }
 
-    test("Kafka command creates a pet", iterations = 1) {
+    test("Kafka command creates a pet", iterations = 10) {
         val correlationId = onCreatePetCommand
             .topic("pets.commands")
-            .send { name = Arb.string(minSize = 1, maxSize = 16) }
+            .send()
             .returning { it.correlationId }
 
-        // Async @KafkaListener path — give it a moment to drain.
-        delay(3.seconds)
-
-        getPet
-            .path(correlationId)
-            .expecting<GetPet.Response200>()
+        // Async @KafkaListener path — retry the HTTP assertion until the
+        // listener has drained the command (or the timeout fires).
+        eventually(timeout = 5.seconds) {
+            getPet
+                .path(correlationId)
+                .expecting<GetPet.Response200>()
+        }
     }
 })

@@ -16,4 +16,16 @@ sealed class Step {
      * scenario stays serial.
      */
     data class Delay(val duration: Duration) : Step()
+
+    /**
+     * Run [substeps] repeatedly until they all succeed or [timeout] elapses.
+     * Sleeps [interval] between attempts. The retry loop catches
+     * `AssertionError` from any substep — including HTTP status mismatches —
+     * but propagates other exceptions immediately.
+     */
+    data class Eventually(
+        val timeout: Duration,
+        val interval: Duration,
+        val substeps: List<Step>,
+    ) : Step()
 }

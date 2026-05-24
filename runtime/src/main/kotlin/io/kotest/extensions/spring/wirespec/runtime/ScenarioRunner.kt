@@ -50,13 +50,41 @@ internal class ScenarioRunner(
     private val serialization: Wirespec.Serialization get() = endpointCtx.serialization
 
     fun run() {
-        for ((index, step) in scenario.steps.withIndex()) {
-            when (step) {
-                is Step.Endpoint -> runOne(step.call, index)
-                is Step.Channel -> runChannel(step.call, index)
-                is Step.Delay -> Thread.sleep(step.duration.inWholeMilliseconds)
+        runSteps(scenario.steps)
+    }
+
+    private fun runSteps(steps: List<Step>) {
+        for ((index, step) in steps.withIndex()) {
+            runStep(step, index)
+        }
+    }
+
+    private fun runStep(step: Step, index: Int) {
+        when (step) {
+            is Step.Endpoint -> runOne(step.call, index)
+            is Step.Channel -> runChannel(step.call, index)
+            is Step.Delay -> Thread.sleep(step.duration.inWholeMilliseconds)
+            is Step.Eventually -> runEventually(step, index)
+        }
+    }
+
+    private fun runEventually(step: Step.Eventually, parentIndex: Int) {
+        val mark = kotlin.time.TimeSource.Monotonic.markNow()
+        var lastError: AssertionError? = null
+        while (true) {
+            try {
+                runSteps(step.substeps)
+                return
+            } catch (e: AssertionError) {
+                lastError = e
+                if (mark.elapsedNow() >= step.timeout) break
+                Thread.sleep(step.interval.inWholeMilliseconds)
             }
         }
+        throw AssertionError(
+            "Eventually step #${parentIndex + 1} failed after ${step.timeout}: ${lastError?.message}",
+            lastError,
+        )
     }
 
     private fun runChannel(call: ChannelCallBuilder<*>, index: Int) {

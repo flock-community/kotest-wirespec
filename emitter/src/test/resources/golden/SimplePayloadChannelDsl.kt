@@ -16,6 +16,8 @@ public class SimplePayloadChannelCall internal constructor(scenario: ScenarioBui
         apply { inner.topic { ref.require() } }
     public fun key(value: String): SimplePayloadChannelCall =
         apply { inner.key(value) }
+    public fun send(): SimplePayloadChannelCall =
+        apply { inner.send() }
     public fun send(value: String): SimplePayloadChannelCall =
         apply { inner.send(value) }
     public fun send(arb: Arb<String>): SimplePayloadChannelCall =

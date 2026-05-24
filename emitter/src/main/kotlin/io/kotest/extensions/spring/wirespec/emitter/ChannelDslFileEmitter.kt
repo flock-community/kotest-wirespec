@@ -57,6 +57,8 @@ object ChannelDslFileEmitter {
         appendLine("        apply { inner.topic { ref.require() } }")
         appendLine("    public fun key(value: String): $call =")
         appendLine("        apply { inner.key(value) }")
+        appendLine("    public fun send(): $call =")
+        appendLine("        apply { inner.send() }")
         appendLine("    public fun send(value: $payload): $call =")
         appendLine("        apply { inner.send(value) }")
         appendLine("    public fun send(arb: Arb<$payload>): $call =")

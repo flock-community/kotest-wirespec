@@ -75,6 +75,17 @@ class ChannelCallBuilder<MessageT : Any> internal constructor(
         direction = Direction.Send
     }
 
+    /**
+     * Send a payload that the Wirespec-derived Arb generates from the
+     * contract — no overrides. Equivalent to `.send { /* empty */ }`.
+     */
+    fun send(): ChannelCallBuilder<MessageT> = apply {
+        requireNotExpecting()
+        sendInput = null
+        sendOverrides = {}
+        direction = Direction.Send
+    }
+
     inline fun <reified R : MessageT> expecting(noinline block: (R) -> Unit): ChannelCallBuilder<MessageT> =
         expecting(R::class, block)
 

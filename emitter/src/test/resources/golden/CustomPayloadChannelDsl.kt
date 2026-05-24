@@ -17,6 +17,8 @@ public class PetCreatedChannelCall internal constructor(scenario: ScenarioBuilde
         apply { inner.topic { ref.require() } }
     public fun key(value: String): PetCreatedChannelCall =
         apply { inner.key(value) }
+    public fun send(): PetCreatedChannelCall =
+        apply { inner.send() }
     public fun send(value: PetCreated): PetCreatedChannelCall =
         apply { inner.send(value) }
     public fun send(arb: Arb<PetCreated>): PetCreatedChannelCall =
