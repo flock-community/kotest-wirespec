@@ -22,6 +22,13 @@ class PetRepository {
         return pet
     }
 
+    /** Used by the Kafka command listener — caller controls the id (correlationId). */
+    fun saveWithId(id: String, name: String, species: String, bornAt: String = "2024-01-01"): Pet {
+        val pet = Pet(id = id, name = name, species = species, bornAt = bornAt)
+        store[id] = pet
+        return pet
+    }
+
     fun get(id: String): Pet? = store[id]
 
     fun update(id: String, name: String?, species: String?): Pet? {

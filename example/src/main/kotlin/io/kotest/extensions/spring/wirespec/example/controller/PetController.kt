@@ -1,6 +1,8 @@
 package io.kotest.extensions.spring.wirespec.example.controller
 
 import io.kotest.extensions.spring.wirespec.example.domain.Pet
+import io.kotest.extensions.spring.wirespec.example.domain.PetCreatedEvent
+import io.kotest.extensions.spring.wirespec.example.service.PetEventPublisher
 import io.kotest.extensions.spring.wirespec.example.service.PetRepository
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
@@ -20,7 +22,10 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("/api/pets")
-class PetController(private val repository: PetRepository) {
+class PetController(
+    private val repository: PetRepository,
+    private val publisher: PetEventPublisher,
+) {
 
     data class CreatePetRequest(val name: String, val species: String)
     data class UpdatePetRequest(val name: String? = null, val species: String? = null)
@@ -40,6 +45,9 @@ class PetController(private val repository: PetRepository) {
             )
         }
         val created = repository.create(request.name, request.species)
+        publisher.publishPetCreated(
+            PetCreatedEvent(id = created.id, name = created.name, species = created.species),
+        )
         return ResponseEntity.status(HttpStatus.CREATED).body(created.toResponse())
     }
 

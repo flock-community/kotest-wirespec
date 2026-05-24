@@ -28,7 +28,33 @@ open class TypesafeDslEmitter(
             .filterIsInstance<Channel>()
             .map { ChannelDslFileEmitter.emit(it, packageName, types) }
 
+        // Upstream's KotlinIrEmitter only adds `import Wirespec` to a generated
+        // file when its owning module's `needImports()` returns true. That check
+        // misses channels: a `.ws` file containing only channels (+ their types)
+        // emits without the import — even though the generated channel
+        // interface extends `Wirespec.Channel` and emitted types implement
+        // `Wirespec.Shape`. Patch the rendered text post-hoc.
+        val fixedBase = NonEmptyList(
+            head = fixWirespecImport(base.head),
+            tail = base.tail.map(::fixWirespecImport),
+        )
+
         val extra = endpointDsl + channelDsl
-        return if (extra.isEmpty()) base else NonEmptyList(base.head, base.tail + extra)
+        return if (extra.isEmpty()) fixedBase else NonEmptyList(fixedBase.head, fixedBase.tail + extra)
+    }
+
+    private fun fixWirespecImport(emitted: Emitted): Emitted {
+        val text = emitted.result
+        if (!text.contains("Wirespec.") ||
+            text.contains("import community.flock.wirespec.kotlin.Wirespec")
+        ) {
+            return emitted
+        }
+        val packageLine = Regex("""(?m)^package\s+\S+\s*$""").find(text) ?: return emitted
+        val insertAt = packageLine.range.last + 1
+        val patched = text.substring(0, insertAt) +
+            "\nimport community.flock.wirespec.kotlin.Wirespec\nimport kotlin.reflect.typeOf" +
+            text.substring(insertAt)
+        return Emitted(file = emitted.file, result = patched)
     }
 }

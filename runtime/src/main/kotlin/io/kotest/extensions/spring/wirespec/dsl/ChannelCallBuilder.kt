@@ -1,5 +1,6 @@
 package io.kotest.extensions.spring.wirespec.dsl
 
+import community.flock.wirespec.integration.kotest.KotestWirespecGeneratorBuilder
 import community.flock.wirespec.kotlin.Wirespec
 import io.kotest.extensions.spring.wirespec.validation.ChannelReflection
 import io.kotest.property.Arb
@@ -20,6 +21,7 @@ class ChannelCallBuilder<MessageT : Any> internal constructor(
     internal var keyInput: Input<String>? = null
 
     internal var sendInput: Input<Any>? = null
+    internal var sendOverrides: (KotestWirespecGeneratorBuilder.() -> Unit)? = null
 
     internal var direction: Direction? = null
     internal var expectedClass: KClass<*>? = null
@@ -57,6 +59,19 @@ class ChannelCallBuilder<MessageT : Any> internal constructor(
         requireNotExpecting()
         @Suppress("UNCHECKED_CAST")
         sendInput = Input.FromArb(arb as Arb<Any>)
+        direction = Direction.Send
+    }
+
+    /**
+     * Generate the payload by walking the Wirespec IR with [overrides]
+     * applied — same machinery as `EndpointCallBuilder.body { ... }`. The
+     * lambda's receiver exposes `registerPath(...)` so individual fields
+     * can be pinned to Arbs.
+     */
+    fun send(overrides: KotestWirespecGeneratorBuilder.() -> Unit): ChannelCallBuilder<MessageT> = apply {
+        requireNotExpecting()
+        sendInput = null
+        sendOverrides = overrides
         direction = Direction.Send
     }
 

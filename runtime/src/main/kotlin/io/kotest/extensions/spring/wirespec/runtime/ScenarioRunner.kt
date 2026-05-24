@@ -70,9 +70,20 @@ internal class ScenarioRunner(
 
         when (call.direction) {
             ChannelCallBuilder.Direction.Send -> {
-                val payload = call.sendInput?.resolve(randomSource)
-                    ?: error("Scenario step #${index + 1} (${call.reflection.channelName}): " +
+                val payload: Any = when {
+                    call.sendInput != null -> call.sendInput!!.resolve(randomSource)
+                    call.sendOverrides != null -> {
+                        val generator = kotestWirespecKotlinGenerator(seed = randomSource.random.nextLong()) {
+                            call.sendOverrides!!()
+                        }
+                        val payloadClass = (call.reflection.payloadType.classifier as? kotlin.reflect.KClass<*>)?.java
+                            ?: error("Scenario step #${index + 1} (${call.reflection.channelName}): " +
+                                "cannot resolve payload Java class from ${call.reflection.payloadType}.")
+                        arbReceiver.generatorFor(payloadClass).generate(generator, emptyList())
+                    }
+                    else -> error("Scenario step #${index + 1} (${call.reflection.channelName}): " +
                         ".send(...) value not set.")
+                }
                 val bytes = ctx.serialization.serializeBody(payload, call.reflection.payloadType)
                 runBlocking {
                     ctx.messaging.publish(OutgoingRecord(topic, key, bytes))
