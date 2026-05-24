@@ -32,15 +32,45 @@ dependencies {
 
     // Spring Boot test infrastructure — boots @SpringBootTest with RANDOM_PORT
     // and provides `WebClient`. `api` so consumers' test code sees it.
-    //
-    // Note: kotest-extensions-spring 1.3.x is built against Kotest 5.x and
-    // conflicts at runtime with kotest-runner-junit5:6.1.x (SpecRef.Reference
-    // arity mismatch). Until a 6.x-compatible release is available we wire the
-    // Spring boot lifecycle manually via SpringTestContext + SpringWirespecExtension.
     api("org.springframework.boot:spring-boot-starter-test:$springBootVersion") {
         exclude(group = "org.junit.vintage", module = "junit-vintage-engine")
     }
     api("org.springframework.boot:spring-boot-starter-webflux:$springBootVersion")
+
+    // Spring Kafka — only the transport types (KafkaProducer / KafkaConsumer
+    // through spring-kafka's transitive kafka-clients dep, EmbeddedKafkaBroker
+    // via spring-kafka-test). compileOnly so HTTP-only consumers of this
+    // library don't drag spring-kafka onto their test classpath. Consumers who
+    // write channel tests add spring-kafka(-test) themselves.
+    compileOnly("org.springframework.kafka:spring-kafka:3.3.0")
+    compileOnly("org.springframework.kafka:spring-kafka-test:3.3.0")
+    testImplementation("org.springframework.kafka:spring-kafka:3.3.0")
+    testImplementation("org.springframework.kafka:spring-kafka-test:3.3.0")
+
+    // Servlet API for the MockMvc transport. spring-test bundles
+    // MockHttpServletRequest/Response but doesn't expose jakarta.servlet-api
+    // transitively, so it has to be declared explicitly to keep
+    // MockMvcTransportation compilable.
+    api("jakarta.servlet:jakarta.servlet-api:6.0.0")
+
+    // Official Kotest ↔ Spring bridge. Provides `SpringExtension`, which drives
+    // Spring's `TestContextManager` from a Kotest spec — i.e. honours
+    // `@SpringBootTest` on the class. Exposed as `api` so consumers can mount
+    // it in their own specs without re-declaring the dep.
+    //
+    // 1.3.0 was compiled against Kotest 5.x and carries a transitive
+    // `kotest-framework-api:5.8.1`. Kotest 6 dropped that artifact and moved
+    // `SpecRef` into `kotest-framework-engine`; both jars declare the same
+    // FQCN, so leaving 5.8.1 on the classpath shadows the 6.x SpecRef and
+    // produces `NoSuchMethodError: SpecRef$Reference.<init>(KClass, String)`
+    // during JUnit-platform discovery. Excluding the 5.x API jar keeps only
+    // the 6.x class. SpringExtension itself only touches stable extension
+    // interfaces (`MountableExtension`, `BeforeSpec/AfterSpec/TestCase`), all
+    // of which Kotest 6 still ships.
+    api("io.kotest.extensions:kotest-extensions-spring:1.3.0") {
+        exclude(group = "io.kotest", module = "kotest-framework-api")
+        exclude(group = "io.kotest", module = "kotest-framework-api-jvm")
+    }
     api("org.jetbrains.kotlinx:kotlinx-coroutines-reactor:1.10.2")
     api("org.jetbrains.kotlin:kotlin-reflect:2.3.0")
 
