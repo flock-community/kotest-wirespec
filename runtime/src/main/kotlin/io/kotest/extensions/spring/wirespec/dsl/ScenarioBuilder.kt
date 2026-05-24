@@ -2,6 +2,7 @@ package io.kotest.extensions.spring.wirespec.dsl
 
 import community.flock.wirespec.kotlin.Wirespec
 import kotlin.reflect.KClass
+import kotlin.time.Duration
 
 @WirespecScenarioDsl
 class ScenarioBuilder internal constructor(
@@ -19,6 +20,15 @@ class ScenarioBuilder internal constructor(
     fun <MessageT : Any> channel(channelClass: KClass<out Wirespec.Channel>): ChannelCallBuilder<MessageT> =
         ChannelCallBuilder(this, channelClass)
 
+    /**
+     * Insert a fixed-duration pause as a scenario step. Useful between a
+     * channel `.send(...)` step and a follow-up HTTP assertion when an
+     * async `@KafkaListener` needs time to process.
+     */
+    fun delay(duration: Duration) {
+        steps += Step.Delay(duration)
+    }
+
     internal fun register(call: EndpointCallBuilder<*, *, *>) {
         steps += Step.Endpoint(call)
     }
@@ -32,6 +42,7 @@ class ScenarioBuilder internal constructor(
             when (step) {
                 is Step.Endpoint -> step.call.returnedRef?.clear()
                 is Step.Channel -> step.call.returnedRef?.clear()
+                is Step.Delay -> Unit
             }
         }
     }

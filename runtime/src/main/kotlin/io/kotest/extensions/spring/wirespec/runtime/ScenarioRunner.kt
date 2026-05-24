@@ -54,6 +54,7 @@ internal class ScenarioRunner(
             when (step) {
                 is Step.Endpoint -> runOne(step.call, index)
                 is Step.Channel -> runChannel(step.call, index)
+                is Step.Delay -> Thread.sleep(step.duration.inWholeMilliseconds)
             }
         }
     }
