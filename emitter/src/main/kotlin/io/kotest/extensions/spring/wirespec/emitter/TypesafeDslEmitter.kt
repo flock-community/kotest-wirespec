@@ -5,6 +5,7 @@ import community.flock.wirespec.compiler.core.emit.EmitShared
 import community.flock.wirespec.compiler.core.emit.Emitted
 import community.flock.wirespec.compiler.core.emit.PackageName
 import community.flock.wirespec.compiler.core.parse.ast.AST
+import community.flock.wirespec.compiler.core.parse.ast.Channel
 import community.flock.wirespec.compiler.core.parse.ast.Endpoint
 import community.flock.wirespec.compiler.core.parse.ast.Type
 import community.flock.wirespec.compiler.utils.Logger
@@ -19,9 +20,15 @@ open class TypesafeDslEmitter(
         val base = super.emit(ast, logger)
         val statements = ast.modules.toList().flatMap { it.statements.toList() }
         val types = statements.filterIsInstance<Type>().associateBy { it.identifier.value }
-        val dsl = statements
+
+        val endpointDsl: List<Emitted> = statements
             .filterIsInstance<Endpoint>()
             .map { DslFileEmitter.emit(it, packageName, types) }
-        return if (dsl.isEmpty()) base else NonEmptyList(base.head, base.tail + dsl)
+        val channelDsl: List<Emitted> = statements
+            .filterIsInstance<Channel>()
+            .map { ChannelDslFileEmitter.emit(it, packageName, types) }
+
+        val extra = endpointDsl + channelDsl
+        return if (extra.isEmpty()) base else NonEmptyList(base.head, base.tail + extra)
     }
 }
