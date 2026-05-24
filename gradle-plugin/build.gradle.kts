@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "io.kotest.extensions"
-version = (providers.gradleProperty("version").orNull) ?: "0.1.0-SNAPSHOT"
+version = (providers.gradleProperty("version").orNull) ?: "0.0.0-SNAPSHOT"
 
 java {
     toolchain { languageVersion = JavaLanguageVersion.of(21) }
@@ -19,8 +19,8 @@ repositories {
 dependencies {
     implementation(gradleApi())
     implementation("community.flock.wirespec.plugin.gradle:community.flock.wirespec.plugin.gradle.gradle.plugin:0.19.0-RC.3")
-    implementation("community.flock.wirespec.spring:wirespec-spring-extractor-gradle-plugin:0.0.5")
-    implementation("io.kotest.extensions:kotest-extensions-spring:0.1.0-SNAPSHOT")
+    implementation("community.flock.wirespec.spring:wirespec-spring-extractor-gradle-plugin:0.0.8")
+    implementation("io.kotest.extensions:kotest-extensions-spring-wirespec-emitter:0.0.0-SNAPSHOT")
 
     testImplementation(kotlin("test"))
     testImplementation(gradleTestKit())

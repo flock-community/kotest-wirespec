@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "io.kotest.extensions"
-version = (providers.gradleProperty("version").orNull) ?: "0.1.0-SNAPSHOT"
+version = (providers.gradleProperty("version").orNull) ?: "0.0.0-SNAPSHOT"
 
 java {
     toolchain { languageVersion = JavaLanguageVersion.of(21) }
@@ -36,7 +36,7 @@ tasks.named<Copy>("processResources") {
         include("**/*.xml")
         expand(
             "projectVersion" to project.version.toString(),
-            "extractorVersion" to (providers.gradleProperty("wirespecExtractorVersion").orNull ?: "0.0.5"),
+            "extractorVersion" to (providers.gradleProperty("wirespecExtractorVersion").orNull ?: "0.0.8"),
             "wirespecVersion" to (providers.gradleProperty("wirespecVersion").orNull ?: "0.19.0-RC.3"),
         )
     }

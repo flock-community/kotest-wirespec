@@ -18,15 +18,18 @@ repositories {
 }
 
 dependencies {
-    implementation("org.springframework.boot:spring-boot-starter-webflux")
+    // Servlet stack so @AutoConfigureMockMvc applies. Spring MVC 5.2+ accepts
+    // `suspend` controller methods, so the existing controllers don't need to
+    // change.
+    implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-validation")
+    implementation("org.springframework.kafka:spring-kafka")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
-    implementation("io.projectreactor.kotlin:reactor-kotlin-extensions")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor")
     implementation("io.swagger.core.v3:swagger-annotations:2.2.25")
 
     testImplementation(project(":runtime"))
+    testImplementation("org.springframework.kafka:spring-kafka-test")
 }
 
 kotlin {
