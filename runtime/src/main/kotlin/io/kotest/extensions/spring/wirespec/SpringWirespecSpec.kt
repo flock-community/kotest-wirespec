@@ -3,6 +3,7 @@ package io.kotest.extensions.spring.wirespec
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import community.flock.wirespec.integration.jackson.kotlin.WirespecSerialization
 import io.kotest.core.spec.style.FunSpec
+import io.kotest.extensions.spring.wirespec.channel.EmbeddedKafkaMessageTransport
 import io.kotest.extensions.spring.wirespec.dsl.ScenarioBuilder
 import io.kotest.extensions.spring.wirespec.kotest.SpringSpecExtension
 import io.kotest.extensions.spring.wirespec.spring.MockMvcTransportation
@@ -76,15 +77,21 @@ abstract class SpringWirespecSpec(body: SpringWirespecSpec.() -> Unit = {}) : Fu
     }
 
     /**
-     * Default channel context for tests in this spec. Returns `null` until the
-     * EmbeddedKafka-backed transport lands in Phase G — channel steps against
-     * a null context fail fast in the runner with a clear remediation message.
+     * Default channel context for tests in this spec. Auto-resolves an
+     * EmbeddedKafka-backed transport when `@EmbeddedKafka` has populated an
+     * [org.springframework.kafka.test.EmbeddedKafkaBroker] bean. Returns
+     * `null` otherwise; channel steps against a null context fail fast in the
+     * runner with a clear remediation message.
      *
      * Override to wire a different transport (e.g. Testcontainers).
      */
     open val channelCtx: WirespecChannelContext? by lazy {
-        // EmbeddedKafkaMessageTransport is wired in Phase G.
-        null
+        runCatching {
+            WirespecChannelContext(
+                messaging = EmbeddedKafkaMessageTransport(applicationContext),
+                serialization = WirespecSerialization(jacksonObjectMapper()),
+            )
+        }.getOrNull()
     }
 
     /**
