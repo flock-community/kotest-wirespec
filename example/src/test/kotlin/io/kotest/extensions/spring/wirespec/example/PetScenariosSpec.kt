@@ -1,6 +1,7 @@
 package io.kotest.extensions.spring.wirespec.example
 
-import io.kotest.extensions.spring.wirespec.SpringScenarioSpec
+import io.kotest.core.extensions.install
+import io.kotest.core.spec.style.FunSpec
 import io.kotest.extensions.spring.wirespec.example.generated.endpoint.CreatePet
 import io.kotest.extensions.spring.wirespec.example.generated.endpoint.DeletePet
 import io.kotest.extensions.spring.wirespec.example.generated.endpoint.GetPet
@@ -11,51 +12,61 @@ import io.kotest.extensions.spring.wirespec.example.generated.kotest.deletePet
 import io.kotest.extensions.spring.wirespec.example.generated.kotest.getPet
 import io.kotest.extensions.spring.wirespec.example.generated.kotest.listPets
 import io.kotest.extensions.spring.wirespec.example.generated.kotest.updatePet
+import io.kotest.extensions.spring.wirespec.kotest.SpringWirespecExtension
+import io.kotest.extensions.spring.wirespec.scenario
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.property.Arb
 import io.kotest.property.arbitrary.string
+import io.kotest.property.checkAll
 
-class PetScenariosSpec : SpringScenarioSpec(ExampleApplication::class, {
+class PetScenariosSpec : FunSpec({
 
-    scenario("pet CRUD", iterations = 10) {
-        val petId = createPet
-            .returning<CreatePet.Response201, String> { it.body.id }
+    val ws = install(SpringWirespecExtension(ExampleApplication::class))
 
-        getPet
-            .path(petId)
-            .expecting<GetPet.Response200>()
+    test("pet CRUD") {
+        checkAll<Int>(iterations = 10) {
+            scenario(ws.context) {
+                val petId = createPet
+                    .returning<CreatePet.Response201, String> { it.body.id }
 
-        val newName = Arb.string()
-        updatePet
-            .path(petId)
-            .body {
-                name = newName
+                getPet
+                    .path(petId)
+                    .expecting<GetPet.Response200>()
+
+                val newName = Arb.string()
+                updatePet
+                    .path(petId)
+                    .body { name = newName }
+                    .expecting<UpdatePet.Response200> { it.body.name shouldNotBe null }
+
+                getPet
+                    .path(petId)
+                    .expecting<GetPet.Response200>()
+
+                deletePet
+                    .path(id = petId)
+                    .expecting<DeletePet.Response204>()
+
+                getPet
+                    .path(petId)
+                    .expecting<GetPet.Response404>()
             }
-            .expecting<UpdatePet.Response200> { it.body.name shouldNotBe null }
-
-        getPet
-            .path(petId)
-            .expecting<GetPet.Response200>()
-
-        deletePet
-            .path(id=petId)
-            .expecting<DeletePet.Response204>()
-
-        getPet
-            .path(petId)
-            .expecting<GetPet.Response404>()
-    }
-
-    scenario("typesafe queries", iterations = 8) {
-        (1..25).forEach { _ ->
-            createPet.expecting<CreatePet.Response201>()
         }
-        listPets
-            .query(limit = 10, offset = 0)
-            .expecting<ListPets.Response200> { resp ->
-                resp.body.content.size shouldBe resp.body.total.coerceAtMost(10)
-            }
     }
 
+    test("typesafe queries") {
+        checkAll<Int>(iterations = 8) {
+            scenario(ws.context) {
+                (1..25).forEach { _ ->
+                    createPet.expecting<CreatePet.Response201>()
+                }
+                listPets
+                    .query(limit = 10, offset = 0)
+                    .expecting<ListPets.Response200> { resp ->
+                        resp.body.content.size shouldBe resp.body.total.coerceAtMost(10)
+                    }
+            }
+        }
+    }
 })

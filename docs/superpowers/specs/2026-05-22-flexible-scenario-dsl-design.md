@@ -119,7 +119,14 @@ suspend fun scenario(
 
 ## Usage — Kotest
 
+`install(...)` is the `Spec.install` extension function from
+`io.kotest.core.extensions` — it's not auto-imported in Kotest 6, so the
+import is explicit. `SpringWirespecExtension` implements
+`MountableExtension<Unit, SpringWirespecExtension>` to participate in `install`.
+
 ```kotlin
+import io.kotest.core.extensions.install
+
 class PetScenariosSpec : FunSpec({
 
     val ws = install(SpringWirespecExtension(ExampleApplication::class))
