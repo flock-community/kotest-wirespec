@@ -42,8 +42,9 @@ import org.springframework.test.web.servlet.MockMvc
  * })
  * ```
  *
- * Override [defaultCtx] to swap the default transport (e.g. WebClient on a
- * `LocalServerPort`).
+ * Override [endpointCtx] to swap the default endpoint transport (e.g. WebClient
+ * on a `LocalServerPort`). Override [channelCtx] for a non-default messaging
+ * transport (Testcontainers etc.).
  */
 abstract class SpringWirespecSpec(body: SpringWirespecSpec.() -> Unit = {}) : FunSpec() {
 
@@ -56,17 +57,17 @@ abstract class SpringWirespecSpec(body: SpringWirespecSpec.() -> Unit = {}) : Fu
     }
 
     /**
-     * Default context for tests in this spec. Auto-resolves a [MockMvc] bean
-     * from the Spring [ApplicationContext] — make sure the spec has
+     * Default endpoint context for tests in this spec. Auto-resolves a [MockMvc]
+     * bean from the Spring [ApplicationContext] — make sure the spec has
      * `@AutoConfigureMockMvc` (or uses `@WebMvcTest`). Override to point at a
      * different transport.
      */
-    open val defaultCtx: WirespecTestContext by lazy {
+    open val endpointCtx: WirespecTestContext by lazy {
         val mvc = applicationContext.getBeanProvider(MockMvc::class.java).getIfAvailable()
             ?: error(
                 "No MockMvc bean is available on the Spring ApplicationContext. " +
                     "Annotate the spec with @AutoConfigureMockMvc (or use @WebMvcTest), " +
-                    "or override `defaultCtx` to supply a custom WirespecTestContext.",
+                    "or override `endpointCtx` to supply a custom WirespecTestContext.",
             )
         WirespecTestContext(
             transportation = MockMvcTransportation(mvc),
@@ -75,11 +76,23 @@ abstract class SpringWirespecSpec(body: SpringWirespecSpec.() -> Unit = {}) : Fu
     }
 
     /**
+     * Default channel context for tests in this spec. Returns `null` until the
+     * EmbeddedKafka-backed transport lands in Phase G — channel steps against
+     * a null context fail fast in the runner with a clear remediation message.
+     *
+     * Override to wire a different transport (e.g. Testcontainers).
+     */
+    open val channelCtx: WirespecChannelContext? by lazy {
+        // EmbeddedKafkaMessageTransport is wired in Phase G.
+        null
+    }
+
+    /**
      * Register a Kotest test whose body is a Wirespec scenario.
      *
-     * Each iteration runs as a single scenario against [defaultCtx]. To use a
-     * different context for a particular test, wrap the body in
-     * [wirespec][io.kotest.extensions.spring.wirespec.wirespec]:
+     * Each iteration runs as a single scenario against [endpointCtx] +
+     * [channelCtx]. To use a different context for a particular test, wrap the
+     * body in [wirespec][io.kotest.extensions.spring.wirespec.wirespec]:
      *
      * ```
      * test("alt transport") {
@@ -94,10 +107,10 @@ abstract class SpringWirespecSpec(body: SpringWirespecSpec.() -> Unit = {}) : Fu
     fun test(name: String, iterations: Int = 1, body: ScenarioBuilder.() -> Unit) {
         super.test(name) {
             if (iterations <= 1) {
-                runScenarioOnce(defaultCtx, null, RandomSource.seeded(System.nanoTime()), body)
+                runScenarioOnce(endpointCtx, channelCtx, RandomSource.seeded(System.nanoTime()), body)
             } else {
                 checkAll<Int>(iterations = iterations) {
-                    runScenarioOnce(defaultCtx, null, randomSource(), body)
+                    runScenarioOnce(endpointCtx, channelCtx, randomSource(), body)
                 }
             }
         }
@@ -106,7 +119,7 @@ abstract class SpringWirespecSpec(body: SpringWirespecSpec.() -> Unit = {}) : Fu
 
 /**
  * Run [block] as a sub-scenario with [ctx] in place of the surrounding
- * [SpringWirespecSpec.defaultCtx]. Executes synchronously, immediately —
+ * [SpringWirespecSpec.endpointCtx]. Executes synchronously, immediately —
  * intended as the override mechanism for individual tests:
  *
  * ```
