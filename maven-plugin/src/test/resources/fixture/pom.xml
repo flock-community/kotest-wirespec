@@ -49,7 +49,7 @@
         </dependency>
 
         <dependency>
-            <groupId>io.kotest.extensions</groupId>
+            <groupId>io.kotest.extensions.wirespec</groupId>
             <artifactId>kotest-wirespec</artifactId>
             <version>${wirespec.runtime.version}</version>
             <scope>test</scope>
@@ -103,7 +103,7 @@
             </plugin>
 
             <plugin>
-                <groupId>io.kotest.extensions</groupId>
+                <groupId>io.kotest.extensions.wirespec</groupId>
                 <artifactId>kotest-wirespec-maven-plugin</artifactId>
                 <version>${wirespec.plugin.version}</version>
                 <executions>

@@ -30,7 +30,7 @@ class PluginDescriptorTest {
     fun `mojo implementation FQCN matches the Kotlin class`() {
         val xml = readDescriptor()!!
         assertTrue(
-            xml.contains("<implementation>io.kotest.extensions.wirespec.maven.KotestWirespecSpringMojo</implementation>"),
+            xml.contains("<implementation>io.kotest.extensions.wirespec.maven.KotestWirespecMojo</implementation>"),
             "Mojo implementation FQCN drifted from descriptor",
         )
     }

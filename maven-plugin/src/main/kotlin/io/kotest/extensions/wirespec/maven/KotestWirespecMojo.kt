@@ -27,12 +27,12 @@ import java.io.File
     requiresDependencyResolution = ResolutionScope.TEST,
     threadSafe = true,
 )
-class KotestWirespecSpringMojo : AbstractMojo() {
+class KotestWirespecMojo : AbstractMojo() {
 
-    @Parameter(property = "kotestWirespecSpring.basePackage", required = true)
+    @Parameter(property = "kotestWirespec.basePackage", required = true)
     lateinit var basePackage: String
 
-    @Parameter(property = "kotestWirespecSpring.generatedPackage")
+    @Parameter(property = "kotestWirespec.generatedPackage")
     var generatedPackage: String? = null
 
     @Parameter(defaultValue = "\${project.build.directory}/wirespec/extracted")

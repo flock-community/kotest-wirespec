@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <plugin>
-  <name>Kotest Spring Wirespec Maven Plugin</name>
+  <name>Kotest Wirespec Maven Plugin</name>
   <description>Extracts Wirespec contracts from Spring controllers and generates a typesafe Kotest DSL.</description>
-  <groupId>io.kotest.extensions</groupId>
+  <groupId>io.kotest.extensions.wirespec</groupId>
   <artifactId>kotest-wirespec-maven-plugin</artifactId>
   <version>${projectVersion}</version>
   <goalPrefix>kotest-wirespec</goalPrefix>
@@ -22,7 +22,7 @@
       <requiresOnline>false</requiresOnline>
       <inheritedByDefault>true</inheritedByDefault>
       <phase>generate-test-sources</phase>
-      <implementation>io.kotest.extensions.wirespec.maven.KotestWirespecSpringMojo</implementation>
+      <implementation>io.kotest.extensions.wirespec.maven.KotestWirespecMojo</implementation>
       <language>java</language>
       <instantiationStrategy>per-lookup</instantiationStrategy>
       <executionStrategy>once-per-session</executionStrategy>
@@ -72,8 +72,8 @@
         </parameter>
       </parameters>
       <configuration>
-        <basePackage implementation="java.lang.String">${'$'}{kotestWirespecSpring.basePackage}</basePackage>
-        <generatedPackage implementation="java.lang.String">${'$'}{kotestWirespecSpring.generatedPackage}</generatedPackage>
+        <basePackage implementation="java.lang.String">${'$'}{kotestWirespec.basePackage}</basePackage>
+        <generatedPackage implementation="java.lang.String">${'$'}{kotestWirespec.generatedPackage}</generatedPackage>
         <extractedDir implementation="java.io.File" default-value="${'$'}{project.build.directory}/wirespec/extracted"/>
         <generatedDir implementation="java.io.File" default-value="${'$'}{project.build.directory}/generated-sources/wirespec"/>
         <project implementation="org.apache.maven.project.MavenProject" default-value="${'$'}{project}"/>
