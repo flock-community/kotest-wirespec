@@ -28,7 +28,7 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("io.swagger.core.v3:swagger-annotations:2.2.25")
 
-    testImplementation(project(":runtime"))
+    testImplementation(project(":core"))
     testImplementation("org.springframework.kafka:spring-kafka-test")
 }
 

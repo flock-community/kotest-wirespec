@@ -22,5 +22,5 @@ includeBuild("maven-plugin")
 
 rootProject.name = "kotest-wirespec"
 
-include(":runtime")
+include(":core")
 include(":example")
