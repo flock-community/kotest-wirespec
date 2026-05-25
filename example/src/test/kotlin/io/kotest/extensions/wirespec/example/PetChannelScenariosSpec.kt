@@ -1,6 +1,6 @@
 package io.kotest.extensions.wirespec.example
 
-import io.kotest.extensions.wirespec.SpringWirespecSpec
+import io.kotest.extensions.wirespec.WirespecSpec
 import io.kotest.extensions.wirespec.example.generated.endpoint.CreatePet
 import io.kotest.extensions.wirespec.example.generated.endpoint.GetPet
 import io.kotest.extensions.wirespec.example.generated.kotest.createPet
@@ -10,8 +10,10 @@ import io.kotest.extensions.wirespec.example.generated.kotest.publishPetCreated
 import io.kotest.matchers.shouldBe
 import io.kotest.property.Arb
 import io.kotest.property.arbitrary.string
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.context.ApplicationContext
 import org.springframework.kafka.test.context.EmbeddedKafka
 import kotlin.time.Duration.Companion.seconds
 
@@ -28,7 +30,7 @@ import kotlin.time.Duration.Companion.seconds
 @SpringBootTest(classes = [ExampleApplication::class])
 @AutoConfigureMockMvc
 @EmbeddedKafka(topics = ["pets.events", "pets.commands"])
-class PetChannelScenariosSpec : SpringWirespecSpec({
+class PetChannelScenariosSpec : WirespecSpec({
 
     test("HTTP create publishes a PetCreatedEvent", iterations = 1) {
         val petId = createPet
@@ -54,4 +56,7 @@ class PetChannelScenariosSpec : SpringWirespecSpec({
                 .expecting<GetPet.Response200>()
         }
     }
-})
+}) {
+    @Autowired
+    protected lateinit var applicationContext: ApplicationContext
+}

@@ -1,6 +1,6 @@
 package io.kotest.extensions.wirespec.example
 
-import io.kotest.extensions.wirespec.SpringWirespecSpec
+import io.kotest.extensions.wirespec.WirespecSpec
 import io.kotest.extensions.wirespec.example.generated.endpoint.CreatePet
 import io.kotest.extensions.wirespec.example.generated.endpoint.DeletePet
 import io.kotest.extensions.wirespec.example.generated.endpoint.GetPet
@@ -16,12 +16,14 @@ import io.kotest.matchers.shouldNotBe
 import io.kotest.property.Arb
 import io.kotest.property.arbitrary.constant
 import io.kotest.property.arbitrary.string
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.context.ApplicationContext
 
 @SpringBootTest(classes = [ExampleApplication::class])
 @AutoConfigureMockMvc
-class PetScenariosSpec : SpringWirespecSpec({
+class PetScenariosSpec : WirespecSpec({
 
     test("pet CRUD", iterations = 10) {
         val petId = createPet
@@ -59,4 +61,7 @@ class PetScenariosSpec : SpringWirespecSpec({
                 resp.body.content.size shouldBe resp.body.total.coerceAtMost(10)
             }
     }
-})
+}) {
+    @Autowired
+    protected lateinit var applicationContext: ApplicationContext
+}

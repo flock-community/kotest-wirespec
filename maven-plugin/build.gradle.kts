@@ -76,11 +76,17 @@ val publishCoreToMavenLocal by tasks.registering(Exec::class) {
     commandLine(outerGradlew, "--no-daemon", ":core:publishToMavenLocal")
 }
 
+val publishSpringToMavenLocal by tasks.registering(Exec::class) {
+    workingDir = outerRoot
+    commandLine(outerGradlew, "--no-daemon", ":spring:publishToMavenLocal")
+}
+
 tasks.test {
     useJUnitPlatform()
     dependsOn(
         publishEmitterToMavenLocal,
         publishCoreToMavenLocal,
+        publishSpringToMavenLocal,
         tasks.named("publishToMavenLocal"),
     )
 }

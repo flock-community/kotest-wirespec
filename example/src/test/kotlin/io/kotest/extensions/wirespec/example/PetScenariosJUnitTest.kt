@@ -3,6 +3,7 @@ package io.kotest.extensions.wirespec.example
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import community.flock.wirespec.integration.jackson.kotlin.WirespecSerialization
 import io.kotest.extensions.wirespec.WirespecTestContext
+import io.kotest.extensions.wirespec.spring.http
 import io.kotest.extensions.wirespec.example.generated.endpoint.CreatePet
 import io.kotest.extensions.wirespec.example.generated.endpoint.DeletePet
 import io.kotest.extensions.wirespec.example.generated.endpoint.GetPet
