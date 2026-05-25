@@ -24,3 +24,4 @@ rootProject.name = "kotest-wirespec"
 
 include(":core")
 include(":example")
+include(":spring")
