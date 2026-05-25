@@ -35,6 +35,9 @@ class KotestWirespecMojo : AbstractMojo() {
     @Parameter(property = "kotestWirespec.generatedPackage")
     var generatedPackage: String? = null
 
+    @Parameter(property = "kotestWirespec.spring")
+    var spring: Boolean? = null
+
     @Parameter(defaultValue = "\${project.build.directory}/wirespec/extracted")
     lateinit var extractedDir: File
 
@@ -55,20 +58,29 @@ class KotestWirespecMojo : AbstractMojo() {
         val effectivePackage = generatedPackage?.takeIf { it.isNotBlank() }
             ?: "$basePackage.generated"
 
-        log.info("Extracting Wirespec from package $basePackage")
-        executeMojo(
-            plugin(
-                groupId(EXTRACTOR_GROUP),
-                artifactId(EXTRACTOR_ARTIFACT),
-                version(EXTRACTOR_VERSION),
-            ),
-            goal("extract"),
-            configuration(
-                element("basePackage", basePackage),
-                element("output", extractedDir.absolutePath),
-            ),
-            env,
-        )
+        val springEnabled = spring ?: hasSpringBootOnClasspath()
+
+        if (springEnabled) {
+            log.info("Extracting Wirespec from package $basePackage")
+            executeMojo(
+                plugin(
+                    groupId(EXTRACTOR_GROUP),
+                    artifactId(EXTRACTOR_ARTIFACT),
+                    version(EXTRACTOR_VERSION),
+                ),
+                goal("extract"),
+                configuration(
+                    element("basePackage", basePackage),
+                    element("output", extractedDir.absolutePath),
+                ),
+                env,
+            )
+        } else {
+            log.info(
+                "Skipping wirespec-spring-extractor (kotestWirespec.spring = false). " +
+                    "Using pre-existing .ws files at ${extractedDir.absolutePath}.",
+            )
+        }
 
         log.info("Generating typesafe Kotest DSL into $generatedDir (package $effectivePackage)")
         executeMojo(
@@ -93,6 +105,9 @@ class KotestWirespecMojo : AbstractMojo() {
 
         project.addTestCompileSourceRoot(generatedDir.absolutePath)
     }
+
+    private fun hasSpringBootOnClasspath(): Boolean =
+        project.dependencies.any { it.groupId == "org.springframework.boot" }
 
     private companion object {
         const val EXTRACTOR_GROUP = "community.flock.wirespec.spring"
