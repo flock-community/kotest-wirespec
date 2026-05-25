@@ -20,7 +20,7 @@ dependencyResolutionManagement {
 includeBuild("emitter")
 includeBuild("maven-plugin")
 
-rootProject.name = "kotest-extensions-spring-wirespec"
+rootProject.name = "kotest-wirespec"
 
 include(":runtime")
 include(":example")
