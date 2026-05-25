@@ -32,12 +32,12 @@ gradlePlugin {
     website.set("https://github.com/kotest/kotest-wirespec")
     vcsUrl.set("https://github.com/kotest/kotest-wirespec.git")
     plugins {
-        create("kotestSpringWirespec") {
+        create("kotestWirespec") {
             id = "io.kotest.extensions.wirespec"
-            displayName = "Kotest Spring Wirespec"
+            displayName = "Kotest Wirespec"
             description = "Extracts Wirespec contracts from Spring controllers and exposes a property-based scenario DSL for Kotest."
             tags.set(listOf("kotest", "spring", "wirespec", "property-based", "contract-testing"))
-            implementationClass = "io.kotest.extensions.wirespec.gradle.KotestWirespecSpringPlugin"
+            implementationClass = "io.kotest.extensions.wirespec.gradle.KotestWirespecPlugin"
         }
     }
 }

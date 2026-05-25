@@ -10,11 +10,11 @@ import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.plugins.JavaPluginExtension
 
-class KotestWirespecSpringPlugin : Plugin<Project> {
+class KotestWirespecPlugin : Plugin<Project> {
     override fun apply(project: Project) {
         val extension = project.extensions.create(
-            "kotestWirespecSpring",
-            KotestWirespecSpringExtension::class.java,
+            "kotestWirespec",
+            KotestWirespecExtension::class.java,
         )
 
         project.pluginManager.apply("community.flock.wirespec.plugin.gradle")

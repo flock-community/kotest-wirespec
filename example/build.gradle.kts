@@ -38,7 +38,7 @@ kotlin {
     }
 }
 
-kotestWirespecSpring {
+kotestWirespec {
     basePackage.set("io.kotest.extensions.wirespec.example")
 }
 
