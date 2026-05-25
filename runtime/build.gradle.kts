@@ -67,10 +67,7 @@ dependencies {
     // the 6.x class. SpringExtension itself only touches stable extension
     // interfaces (`MountableExtension`, `BeforeSpec/AfterSpec/TestCase`), all
     // of which Kotest 6 still ships.
-    api("io.kotest.extensions:kotest-extensions-spring:1.3.0") {
-        exclude(group = "io.kotest", module = "kotest-framework-api")
-        exclude(group = "io.kotest", module = "kotest-framework-api-jvm")
-    }
+    api("io.kotest:kotest-extensions-spring-jvm:6.1.11")
     api("org.jetbrains.kotlinx:kotlinx-coroutines-reactor:1.10.2")
     api("org.jetbrains.kotlin:kotlin-reflect:2.3.0")
 

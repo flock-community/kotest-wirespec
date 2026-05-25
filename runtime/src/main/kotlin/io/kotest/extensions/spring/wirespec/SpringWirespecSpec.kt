@@ -5,7 +5,7 @@ import community.flock.wirespec.integration.jackson.kotlin.WirespecSerialization
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.extensions.spring.wirespec.channel.EmbeddedKafkaMessageTransport
 import io.kotest.extensions.spring.wirespec.dsl.ScenarioBuilder
-import io.kotest.extensions.spring.wirespec.kotest.SpringSpecExtension
+import io.kotest.extensions.spring.SpringRootTestExtension
 import io.kotest.extensions.spring.wirespec.spring.MockMvcTransportation
 import io.kotest.property.RandomSource
 import io.kotest.property.checkAll
@@ -16,7 +16,7 @@ import org.springframework.test.web.servlet.MockMvc
 /**
  * Base spec for Wirespec scenarios against a Spring application.
  *
- * Mounts the Spring lifecycle ([SpringSpecExtension]), auto-resolves a default
+ * Mounts the Spring lifecycle ([SpringRootTestExtension]), auto-resolves a default
  * [WirespecTestContext] from the running Spring container (MockMvc-backed),
  * and exposes a [test] overload whose body's receiver is [ScenarioBuilder] —
  * so the generated endpoint DSL (`createPet`, `getPet`, …) is in scope
@@ -53,7 +53,7 @@ abstract class SpringWirespecSpec(body: SpringWirespecSpec.() -> Unit = {}) : Fu
     protected lateinit var applicationContext: ApplicationContext
 
     init {
-        extension(SpringSpecExtension)
+        extension(SpringRootTestExtension())
         body()
     }
 
