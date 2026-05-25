@@ -4,7 +4,7 @@ plugins {
 
 allprojects {
     group = (rootProject.findProperty("group") as String?) ?: "io.kotest.extensions"
-    version = (rootProject.findProperty("version") as String?) ?: "0.1.0-SNAPSHOT"
+    version = (rootProject.findProperty("version") as String?) ?: "0.0.0-SNAPSHOT"
 }
 
 subprojects {

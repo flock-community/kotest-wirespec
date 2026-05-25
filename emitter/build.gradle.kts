@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "io.kotest.extensions"
-version = (providers.gradleProperty("version").orNull) ?: "0.1.0-SNAPSHOT"
+version = (providers.gradleProperty("version").orNull) ?: "0.0.0-SNAPSHOT"
 
 java {
     toolchain { languageVersion = JavaLanguageVersion.of(21) }

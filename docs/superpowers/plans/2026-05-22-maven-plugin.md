@@ -57,7 +57,7 @@ plugins {
 }
 
 group = "io.kotest.extensions"
-version = (providers.gradleProperty("version").orNull) ?: "0.1.0-SNAPSHOT"
+version = (providers.gradleProperty("version").orNull) ?: "0.0.0-SNAPSHOT"
 
 java {
     toolchain { languageVersion = JavaLanguageVersion.of(21) }
@@ -104,12 +104,12 @@ Expected output: `BUILD SUCCESSFUL`.
 
 - [ ] **Step 4: Verify the artifact landed in ~/.m2 with the right coordinates**
 
-Run: `ls ~/.m2/repository/io/kotest/extensions/kotest-extensions-spring-wirespec-emitter/0.1.0-SNAPSHOT/`
+Run: `ls ~/.m2/repository/io/kotest/extensions/kotest-extensions-spring-wirespec-emitter/0.0.0-SNAPSHOT/`
 
 Expected output includes:
-- `kotest-extensions-spring-wirespec-emitter-0.1.0-SNAPSHOT.jar`
-- `kotest-extensions-spring-wirespec-emitter-0.1.0-SNAPSHOT.pom`
-- `kotest-extensions-spring-wirespec-emitter-0.1.0-SNAPSHOT-sources.jar`
+- `kotest-extensions-spring-wirespec-emitter-0.0.0-SNAPSHOT.jar`
+- `kotest-extensions-spring-wirespec-emitter-0.0.0-SNAPSHOT.pom`
+- `kotest-extensions-spring-wirespec-emitter-0.0.0-SNAPSHOT-sources.jar`
 
 - [ ] **Step 5: Commit**
 
@@ -186,7 +186,7 @@ plugins {
 }
 
 group = "io.kotest.extensions"
-version = (providers.gradleProperty("version").orNull) ?: "0.1.0-SNAPSHOT"
+version = (providers.gradleProperty("version").orNull) ?: "0.0.0-SNAPSHOT"
 
 java {
     toolchain { languageVersion = JavaLanguageVersion.of(21) }
@@ -430,7 +430,7 @@ cd /Users/wilmveel/Projects/kotest-spring/maven-plugin
 cat build/resources/main/META-INF/maven/plugin.xml | head -10
 ```
 
-Expected: `<version>0.1.0-SNAPSHOT</version>` (or whatever `version` is set to), and `${project.build.directory}` lines still containing the literal `${project.build.directory}`.
+Expected: `<version>0.0.0-SNAPSHOT</version>` (or whatever `version` is set to), and `${project.build.directory}` lines still containing the literal `${project.build.directory}`.
 
 If you see `${projectVersion}` unresolved, the `expand` wiring is wrong — revisit Task 2 Step 3.
 
@@ -650,7 +650,7 @@ class KotestWirespecSpringMojo : AbstractMojo() {
 
         const val EMITTER_GROUP = "io.kotest.extensions"
         const val EMITTER_ARTIFACT = "kotest-extensions-spring-wirespec-emitter"
-        const val EMITTER_VERSION = "0.1.0-SNAPSHOT"
+        const val EMITTER_VERSION = "0.0.0-SNAPSHOT"
         const val EMITTER_FQCN =
             "io.kotest.extensions.spring.wirespec.emitter.TypesafeDslEmitter"
     }
@@ -658,7 +658,7 @@ class KotestWirespecSpringMojo : AbstractMojo() {
 ```
 
 Notes:
-- `EMITTER_VERSION` is intentionally hard-coded to `0.1.0-SNAPSHOT` for the local-only iteration. Once a release goes out, this becomes a constant matching the published version. We do *not* try to read the Gradle project version at runtime — the constant is what gets compiled into the jar, and the jar is what end-users run.
+- `EMITTER_VERSION` is intentionally hard-coded to `0.0.0-SNAPSHOT` for the local-only iteration. Once a release goes out, this becomes a constant matching the published version. We do *not* try to read the Gradle project version at runtime — the constant is what gets compiled into the jar, and the jar is what end-users run.
 - `languages` is passed as `<languages><language>Kotlin</language></languages>` — the upstream `wirespec-maven-plugin:compile` mojo accepts a `java.util.List` for that parameter.
 - `effectivePackage` collapses empty/blank to the default rather than letting Maven inject an empty string.
 
@@ -742,8 +742,8 @@ Create: `maven-plugin/src/test/resources/fixture/pom.xml`
         <maven.compiler.target>21</maven.compiler.target>
         <kotlin.version>2.3.0</kotlin.version>
         <kotest.version>6.1.11</kotest.version>
-        <wirespec.runtime.version>0.1.0-SNAPSHOT</wirespec.runtime.version>
-        <wirespec.plugin.version>0.1.0-SNAPSHOT</wirespec.plugin.version>
+        <wirespec.runtime.version>0.0.0-SNAPSHOT</wirespec.runtime.version>
+        <wirespec.plugin.version>0.0.0-SNAPSHOT</wirespec.plugin.version>
     </properties>
 
     <dependencies>
@@ -1022,9 +1022,9 @@ Run:
 ```bash
 cd /Users/wilmveel/Projects/kotest-spring/maven-plugin
 /Users/wilmveel/Projects/kotest-spring/gradlew --no-daemon publishToMavenLocal
-ls ~/.m2/repository/io/kotest/extensions/kotest-extensions-spring-wirespec-maven-plugin/0.1.0-SNAPSHOT/
-ls ~/.m2/repository/io/kotest/extensions/kotest-extensions-spring-wirespec/0.1.0-SNAPSHOT/
-ls ~/.m2/repository/io/kotest/extensions/kotest-extensions-spring-wirespec-emitter/0.1.0-SNAPSHOT/
+ls ~/.m2/repository/io/kotest/extensions/kotest-extensions-spring-wirespec-maven-plugin/0.0.0-SNAPSHOT/
+ls ~/.m2/repository/io/kotest/extensions/kotest-extensions-spring-wirespec/0.0.0-SNAPSHOT/
+ls ~/.m2/repository/io/kotest/extensions/kotest-extensions-spring-wirespec-emitter/0.0.0-SNAPSHOT/
 ```
 
 Expected: each `ls` shows a `.jar` and a `.pom`. If `kotest-extensions-spring-wirespec` (runtime) isn't there, run `cd /Users/wilmveel/Projects/kotest-spring && ./gradlew --no-daemon :runtime:publishToMavenLocal` once manually — it's installed once and stays.
@@ -1258,5 +1258,5 @@ git commit -m "docs(readme): document Maven usage alongside Gradle"
 - [ ] All 9 tasks committed.
 - [ ] `git status` clean.
 - [ ] `cd maven-plugin && /Users/wilmveel/Projects/kotest-spring/gradlew --no-daemon test` passes (both unit and integration tests).
-- [ ] `ls ~/.m2/repository/io/kotest/extensions/kotest-extensions-spring-wirespec-maven-plugin/0.1.0-SNAPSHOT/` shows the published artifact.
+- [ ] `ls ~/.m2/repository/io/kotest/extensions/kotest-extensions-spring-wirespec-maven-plugin/0.0.0-SNAPSHOT/` shows the published artifact.
 - [ ] Re-read the spec's "Non-goals" section — confirm we did not silently expand scope (no Central publishing, no clean mojo, no example migration).

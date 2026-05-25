@@ -108,7 +108,7 @@ class KotestWirespecSpringMojo : AbstractMojo() {
 
         const val EMITTER_GROUP = "io.kotest.extensions"
         const val EMITTER_ARTIFACT = "kotest-extensions-spring-wirespec-emitter"
-        const val EMITTER_VERSION = "0.1.0-SNAPSHOT"
+        const val EMITTER_VERSION = "0.0.0-SNAPSHOT"
         const val EMITTER_FQCN =
             "io.kotest.extensions.spring.wirespec.emitter.TypesafeDslEmitter"
     }
