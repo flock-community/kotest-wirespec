@@ -1,4 +1,4 @@
-# kotest-extensions-spring-wirespec
+# kotest-wirespec
 
 > **Your Spring controllers _are_ the contract. Your tests _know_ the contract. Drift is impossible.**
 
@@ -13,23 +13,32 @@ plugins {
     id("io.kotest.extensions.wirespec") version "0.1.0"
 }
 
-kotestWirespecSpring {
+kotestWirespec {
     basePackage.set("com.example.api")
+    // spring = false  // opt out of Spring extraction; supply .ws files under src/test/wirespec/
+}
+
+dependencies {
+    testImplementation("io.kotest.extensions.wirespec:kotest-wirespec:0.1.0")
+    testImplementation("io.kotest.extensions.wirespec:kotest-wirespec-spring:0.1.0")
 }
 ```
+
+By default the plugin auto-detects whether `org.springframework.boot` is applied and wires the Spring extractor accordingly. Set `kotestWirespec { spring = false }` to skip extraction and supply hand-authored `.ws` files via `src/test/wirespec/` (or configure the upstream `community.flock.wirespec.plugin.gradle` extension).
 
 …or, in Maven:
 
 ```xml
 <plugin>
-    <groupId>io.kotest.extensions</groupId>
-    <artifactId>kotest-extensions-spring-wirespec-maven-plugin</artifactId>
+    <groupId>io.kotest.extensions.wirespec</groupId>
+    <artifactId>kotest-wirespec-maven-plugin</artifactId>
     <version>0.1.0</version>
     <executions>
         <execution>
             <goals><goal>generate</goal></goals>
             <configuration>
                 <basePackage>com.example.api</basePackage>
+                <!-- <spring>false</spring> -->
             </configuration>
         </execution>
     </executions>
@@ -62,7 +71,7 @@ That's the whole setup. Each `gradle test` (or `mvn verify`) now does:
 ```
 @RestController + @ApiResponses
         │
-        ▼  extractWirespec   (scans your controllers)
+        ▼  extractWirespec   (scans your controllers; off when spring = false)
   build/wirespec/extracted/*.ws
         │
         ▼  wirespecKotlin     (generates typed models, endpoints, Arb<T> generators)
@@ -72,92 +81,63 @@ That's the whole setup. Each `gradle test` (or `mvn verify`) now does:
   build/generated/wirespec/.../kotest/*Dsl.kt
         │
         ▼
-  checkAll { scenario(ctx) { … } } → live Spring Boot on a random port
+  WirespecSpec { test { … } } → live Spring Boot on a random port
 ```
 
 ## What your tests look like
 
 ```kotlin
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import community.flock.wirespec.integration.jackson.kotlin.WirespecSerialization
-import io.kotest.core.spec.style.FunSpec
-import io.kotest.extensions.wirespec.WirespecTestContext
-import io.kotest.extensions.wirespec.kotest.SpringSpecExtension
-import io.kotest.extensions.wirespec.scenario
-import io.kotest.property.checkAll
+import io.kotest.extensions.wirespec.WirespecSpec
+import io.kotest.extensions.wirespec.example.generated.endpoint.CreatePet
+import io.kotest.extensions.wirespec.example.generated.endpoint.GetPet
+import io.kotest.extensions.wirespec.example.generated.kotest.createPet
+import io.kotest.extensions.wirespec.example.generated.kotest.getPet
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.boot.test.web.server.LocalServerPort
+import org.springframework.context.ApplicationContext
 
-@SpringBootTest(
-    classes = [MyApp::class],
-    webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-)
-class PetScenariosSpec : FunSpec() {
+@SpringBootTest(classes = [MyApp::class])
+@AutoConfigureMockMvc
+class PetScenariosSpec : WirespecSpec({
 
-    @LocalServerPort
-    var port: Int = 0
+    test("pet CRUD", iterations = 50) {
+        val petId = createPet
+            .returning<CreatePet.Response201, String> { it.body.id }
 
-    private val ctx: WirespecTestContext by lazy {
-        WirespecTestContext.http(
-            baseUrl = "http://localhost:$port",
-            serialization = WirespecSerialization(jacksonObjectMapper()),
-        )
+        getPet
+            .path(petId)
+            .expecting<GetPet.Response200>()
+
+        updatePet
+            .path(petId)
+            .body(UpdatePetRequest(name = "Rex", species = null))
+            .expecting<UpdatePet.Response200> { it.body.name shouldBe "Rex" }
+
+        deletePet.path(petId).expecting<DeletePet.Response204>()
+        getPet.path(petId).expecting<GetPet.Response404>()
     }
-
-    init {
-        extension(SpringSpecExtension)
-
-        test("pet CRUD") {
-            checkAll<Int>(iterations = 50) {
-                scenario(ctx) {
-                    val petId = createPet
-                        .returning<CreatePet.Response201, String> { it.body.id }
-
-                    getPet
-                        .path(petId)
-                        .expecting<GetPet.Response200>()
-
-                    updatePet
-                        .path(petId)
-                        .body(UpdatePetRequest(name = "Rex", species = null))
-                        .expecting<UpdatePet.Response200> { it.body.name shouldBe "Rex" }
-
-                    deletePet.path(petId).expecting<DeletePet.Response204>()
-                    getPet.path(petId).expecting<GetPet.Response404>()
-                }
-            }
-        }
-    }
+}) {
+    @Autowired
+    protected lateinit var applicationContext: ApplicationContext
 }
 ```
 
-`SpringSpecExtension` is a thin `SpecExtension` wrapper around the official
-`io.kotest.extensions:kotest-extensions-spring` `SpringTestExtension`. It
-delegates the actual Spring lifecycle (booting `@SpringBootTest`, populating
-`@LocalServerPort` / `@Autowired`) to the maintained extension while bypassing
-a `TestCaseExtension` code path that the 1.3.0 binary inherits from Kotest
-5.x — the upstream artifact has not yet shipped a Kotest 6 release. Drop the
-wrapper once it does.
+The spec inherits Spring lifecycle and a default `MockMvc`-backed `endpointCtx` from the `kotest-wirespec-spring` module: drop that artifact on the test classpath and the upstream `SpringExtension` (from `io.kotest:kotest-extensions-spring`) is auto-mounted, `@SpringBootTest` boots, and the spec resolves transports by reflecting on the `@Autowired ApplicationContext` field. Override `endpointCtx` on the spec to swap the default (e.g. to point at `@LocalServerPort` via the `WirespecTestContext.http(...)` factory from `kotest-wirespec-spring`).
 
-The DSL itself is spec-style-agnostic — drop `scenario(ctx) { … }` into any
-Kotest spec (FunSpec, BehaviorSpec, ShouldSpec, …) or into a JUnit Jupiter
-`@Test` method via `@SpringBootTest(webEnvironment = RANDOM_PORT)`. See
-`example/src/test/kotlin/.../PetScenariosJUnitTest.kt` for the JUnit variant.
+The DSL itself is spec-style-agnostic — drop `scenario(ctx) { … }` into any Kotest spec (FunSpec, BehaviorSpec, ShouldSpec, …) or into a JUnit Jupiter `@Test` method via `@SpringBootTest(webEnvironment = RANDOM_PORT)`. See `example/src/test/kotlin/.../PetScenariosJUnitTest.kt` for the JUnit variant.
 
 Every identifier you see — `createPet`, `getPet`, `Response201`, `Response404`, `CreatePetRequest` — was generated from your controller this build. Rename a method, change a path parameter, drop a `@ApiResponse` annotation: the test won't compile.
 
 ## Channels (Kafka)
 
-`wirespec-spring-extractor` 0.0.7+ extracts `@KafkaListener` methods and
-`kafkaTemplate.send(...)` call sites as Wirespec channels. The Kotest DSL
-emitter generates a per-channel receiver alongside the per-endpoint one —
-both interleave in the same `scenario { … }`:
+`wirespec-spring-extractor` 0.0.7+ extracts `@KafkaListener` methods and `kafkaTemplate.send(...)` call sites as Wirespec channels. The Kotest DSL emitter generates a per-channel receiver alongside the per-endpoint one — both interleave in the same `scenario { … }`:
 
 ```kotlin
 @SpringBootTest(classes = [MyApp::class])
 @AutoConfigureMockMvc
 @EmbeddedKafka(topics = ["pets.events"])
-class PetChannelSpec : SpringWirespecSpec({
+class PetChannelSpec : WirespecSpec({
 
     test("HTTP create publishes a PetCreatedEvent", iterations = 5) {
         val petId = createPet.returning<CreatePet.Response201, String> { it.body.id }
@@ -166,32 +146,26 @@ class PetChannelSpec : SpringWirespecSpec({
             .topic("pets.events")
             .expecting { it.id shouldBe petId.require() }
     }
-})
+}) {
+    @Autowired
+    protected lateinit var applicationContext: ApplicationContext
+}
 ```
 
-`SpringWirespecSpec.channelCtx` is auto-resolved from `@EmbeddedKafka` — no
-listener wiring needed. Override `channelCtx` for a custom transport
-(e.g. Testcontainers).
+`WirespecSpec.channelCtx` is auto-resolved from `@EmbeddedKafka` by `SpringContextProvider` — no listener wiring needed. Override `channelCtx` for a custom transport (e.g. Testcontainers).
 
 **Slots on a channel call:**
 
-- `.topic(value)` / `.topic(ref: ResultRef<String>)` — required. The extracted
-  contract does not carry topic names.
+- `.topic(value)` / `.topic(ref: ResultRef<String>)` — required. The extracted contract does not carry topic names.
 - `.key(value)` — optional partition key for producer steps.
-- `.send(value | Arb | block { … })` — test publishes a message; drives an
-  app `@KafkaListener`. The `block { … }` form takes a per-field
-  `KotestWirespecGeneratorBuilder` receiver — `name = Arb.string(…)` pins
-  the `name` field while other fields are Arb-generated from the schema.
-- `.expecting()` / `.expecting { assertion }` — test consumes; asserts the
-  app published exactly one record on `topic` within 2 s.
+- `.send(value | Arb | block { … })` — test publishes a message; drives an app `@KafkaListener`. The `block { … }` form takes a per-field `KotestWirespecGeneratorBuilder` receiver — `name = Arb.string(…)` pins the `name` field while other fields are Arb-generated from the schema.
+- `.expecting()` / `.expecting { assertion }` — test consumes; asserts the app published exactly one record on `topic` within 2 s.
 - `.collecting(count = N)` / `.collecting(duration = d)` — batched consume.
 - `.returning { projection }` — same `ResultRef` pattern as endpoints.
 
-Setting both `.send` and `.expecting` on one channel call is a configuration
-error caught before any transport call runs.
+Setting both `.send` and `.expecting` on one channel call is a configuration error caught before any transport call runs.
 
-Channel runtime deps are `compileOnly` in the library — consumers writing
-channel tests add `spring-kafka` + `spring-kafka-test` to their own build.
+`spring-kafka(-test)` is `compileOnly` in `kotest-wirespec-spring` — consumers writing channel tests add the runtime artifacts to their own test build.
 
 ## The value proposition
 
@@ -222,6 +196,16 @@ Wrap a `scenario(ctx) { … }` block in `checkAll<Int>(iterations = N) { … }` 
 ### Slot ergonomics: only what exists
 
 The emitter renders `path(id: String)` only when the endpoint declares a path parameter, `query(limit: Int, offset: Int)` only when it declares those queries, `body(T)` only when there's a request body. Calling `petCreate.path(...)` (where `PetCreate.Path` is empty) is a compile error.
+
+## Modules
+
+| Artifact | What's in it |
+|---|---|
+| `io.kotest.extensions.wirespec:kotest-wirespec` | Framework-neutral runtime: `WirespecSpec`, scenario DSL, `ContextProvider` SPI. No Spring deps. |
+| `io.kotest.extensions.wirespec:kotest-wirespec-spring` | Spring transports (`MockMvc`, `WebClient`, `EmbeddedKafka`), `WirespecTestContext.http(...)` factory, auto-registered `SpringContextProvider`, upstream `io.kotest:kotest-extensions-spring` lifecycle. |
+| `io.kotest.extensions.wirespec:kotest-wirespec-emitter` | The Wirespec `Emitter` that produces the typesafe Kotest DSL (used by the build plugins). |
+| `io.kotest.extensions.wirespec:kotest-wirespec-maven-plugin` | Maven Mojo wrapping the extractor + emitter pipeline. |
+| Gradle plugin id `io.kotest.extensions.wirespec` | Gradle plugin wrapping the extractor + emitter pipeline. |
 
 ## What this replaces
 
