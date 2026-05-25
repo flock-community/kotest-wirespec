@@ -1,7 +1,7 @@
 package com.example.api.kotest
-import io.kotest.extensions.spring.wirespec.dsl.ResultRef
-import io.kotest.extensions.spring.wirespec.dsl.ScenarioBuilder
-import io.kotest.extensions.spring.wirespec.dsl.WirespecScenarioDsl
+import io.kotest.extensions.wirespec.dsl.ResultRef
+import io.kotest.extensions.wirespec.dsl.ScenarioBuilder
+import io.kotest.extensions.wirespec.dsl.WirespecScenarioDsl
 import io.kotest.property.Arb
 import kotlin.time.Duration
 import com.example.api.channel.PetCreatedChannel

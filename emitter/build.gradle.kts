@@ -4,7 +4,7 @@ plugins {
     `maven-publish`
 }
 
-group = "io.kotest.extensions"
+group = "io.kotest.extensions.wirespec"
 version = (providers.gradleProperty("version").orNull) ?: "0.0.0-SNAPSHOT"
 
 java {
@@ -32,7 +32,7 @@ publishing {
     publications {
         create<MavenPublication>("maven") {
             from(components["java"])
-            artifactId = "kotest-extensions-spring-wirespec-emitter"
+            artifactId = "kotest-wirespec-emitter"
             pom {
                 name.set("Kotest Spring Wirespec Emitter")
                 description.set("TypesafeDslEmitter: Wirespec Emitter that produces a typesafe Kotest DSL per endpoint.")

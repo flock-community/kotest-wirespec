@@ -1,4 +1,4 @@
-package io.kotest.extensions.spring.wirespec.gradle
+package io.kotest.extensions.wirespec.gradle
 
 import org.gradle.api.provider.Property
 import javax.inject.Inject

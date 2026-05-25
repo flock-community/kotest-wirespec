@@ -2,7 +2,7 @@
 
 **Status:** approved 2026-05-22
 **Owner:** Willem Veelenturf
-**Related:** existing Gradle plugin at `plugin/` (`io.kotest.extensions.spring.wirespec`)
+**Related:** existing Gradle plugin at `plugin/` (`io.kotest.extensions.wirespec`)
 
 ## Goal
 
@@ -92,7 +92,7 @@ mvn verify
                      input        = target/wirespec/extracted
                      output       = target/generated-sources/wirespec
                      packageName  = <basePackage>.generated
-                     emitterClass = io.kotest.extensions.spring.wirespec
+                     emitterClass = io.kotest.extensions.wirespec
                                     .emitter.TypesafeDslEmitter
               3. project.addTestCompileSourceRoot(generatedDir)
 ```
@@ -241,7 +241,7 @@ class KotestWirespecSpringMojo : AbstractMojo() {
                 element("packageName", generatedPackage ?: "$basePackage.generated"),
                 element(
                     "emitterClass",
-                    "io.kotest.extensions.spring.wirespec.emitter.TypesafeDslEmitter",
+                    "io.kotest.extensions.wirespec.emitter.TypesafeDslEmitter",
                 ),
             ),
             env,

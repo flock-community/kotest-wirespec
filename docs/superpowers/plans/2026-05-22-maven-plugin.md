@@ -347,7 +347,7 @@ Create: `maven-plugin/src/main/resources-template/META-INF/maven/plugin.xml`
       <requiresOnline>false</requiresOnline>
       <inheritedByDefault>true</inheritedByDefault>
       <phase>generate-test-sources</phase>
-      <implementation>io.kotest.extensions.spring.wirespec.maven.KotestWirespecSpringMojo</implementation>
+      <implementation>io.kotest.extensions.wirespec.maven.KotestWirespecSpringMojo</implementation>
       <language>java</language>
       <instantiationStrategy>per-lookup</instantiationStrategy>
       <executionStrategy>once-per-session</executionStrategy>
@@ -458,7 +458,7 @@ Tiny unit test that loads the descriptor from the test classpath and asserts the
 Create: `maven-plugin/src/test/kotlin/io/kotest/extensions/spring/wirespec/maven/PluginDescriptorTest.kt`
 
 ```kotlin
-package io.kotest.extensions.spring.wirespec.maven
+package io.kotest.extensions.wirespec.maven
 
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNotNull
@@ -490,7 +490,7 @@ class PluginDescriptorTest {
     fun `mojo implementation FQCN matches the Kotlin class`() {
         val xml = readDescriptor()!!
         assertTrue(
-            xml.contains("<implementation>io.kotest.extensions.spring.wirespec.maven.KotestWirespecSpringMojo</implementation>"),
+            xml.contains("<implementation>io.kotest.extensions.wirespec.maven.KotestWirespecSpringMojo</implementation>"),
             "Mojo implementation FQCN drifted from descriptor",
         )
     }
@@ -543,7 +543,7 @@ The mojo itself. All it does: delegate to two upstream mojos via `mojo-executor`
 Create: `maven-plugin/src/main/kotlin/io/kotest/extensions/spring/wirespec/maven/KotestWirespecSpringMojo.kt`
 
 ```kotlin
-package io.kotest.extensions.spring.wirespec.maven
+package io.kotest.extensions.wirespec.maven
 
 import org.apache.maven.execution.MavenSession
 import org.apache.maven.plugin.AbstractMojo
@@ -652,7 +652,7 @@ class KotestWirespecSpringMojo : AbstractMojo() {
         const val EMITTER_ARTIFACT = "kotest-extensions-spring-wirespec-emitter"
         const val EMITTER_VERSION = "0.0.0-SNAPSHOT"
         const val EMITTER_FQCN =
-            "io.kotest.extensions.spring.wirespec.emitter.TypesafeDslEmitter"
+            "io.kotest.extensions.wirespec.emitter.TypesafeDslEmitter"
     }
 }
 ```
@@ -725,7 +725,7 @@ Create: `maven-plugin/src/test/resources/fixture/pom.xml`
 <project xmlns="http://maven.apache.org/POM/4.0.0">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>io.kotest.extensions.spring.wirespec.fixture</groupId>
+    <groupId>io.kotest.extensions.wirespec.fixture</groupId>
     <artifactId>maven-fixture</artifactId>
     <version>0.0.1-SNAPSHOT</version>
 
@@ -933,7 +933,7 @@ package example
 
 import example.generated.endpoint.GetPet
 import example.generated.kotest.getPet
-import io.kotest.extensions.spring.wirespec.SpringScenarioSpec
+import io.kotest.extensions.wirespec.SpringScenarioSpec
 
 class PetSmokeSpec : SpringScenarioSpec(ExampleApplication::class, {
 
@@ -1051,7 +1051,7 @@ Drives `mvn verify` on the fixture and asserts the build passed and the expected
 Create: `maven-plugin/src/test/kotlin/io/kotest/extensions/spring/wirespec/maven/MavenInvokerIT.kt`
 
 ```kotlin
-package io.kotest.extensions.spring.wirespec.maven
+package io.kotest.extensions.wirespec.maven
 
 import org.apache.maven.shared.invoker.DefaultInvocationRequest
 import org.apache.maven.shared.invoker.DefaultInvoker
@@ -1154,7 +1154,7 @@ Expected outcome on success: test passes; Surefire output in the temp dir shows 
 Common failure modes and what to check:
 - `mvn: command not found` → install Maven, or set `MAVEN_HOME`.
 - `Could not resolve io.kotest.extensions:kotest-extensions-spring-wirespec-emitter` → emitter wasn't published to `~/.m2`. Re-run `:emitter:publishToMavenLocal` from the outer build.
-- `ClassNotFoundException: io.kotest.extensions.spring.wirespec.emitter.TypesafeDslEmitter` → the `dependencies(...)` arg to the upstream plugin didn't propagate the emitter into its realm. Fallback per the spec's open-risks section: change the fixture POM to add the emitter as a `<dependency>` on the wrapper plugin block (i.e., make the user declare it — still one block, with one extra child).
+- `ClassNotFoundException: io.kotest.extensions.wirespec.emitter.TypesafeDslEmitter` → the `dependencies(...)` arg to the upstream plugin didn't propagate the emitter into its realm. Fallback per the spec's open-risks section: change the fixture POM to add the emitter as a `<dependency>` on the wrapper plugin block (i.e., make the user declare it — still one block, with one extra child).
 - `Compile failure: SpringScenarioSpec not found` → runtime artifact missing from `~/.m2`. Re-run `:runtime:publishToMavenLocal`.
 
 - [ ] **Step 3: Commit**

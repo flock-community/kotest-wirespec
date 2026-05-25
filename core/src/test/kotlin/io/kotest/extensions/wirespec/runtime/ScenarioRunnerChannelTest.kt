@@ -1,13 +1,13 @@
-package io.kotest.extensions.spring.wirespec.runtime
+package io.kotest.extensions.wirespec.runtime
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import community.flock.wirespec.integration.jackson.kotlin.WirespecSerialization
 import community.flock.wirespec.kotlin.Wirespec
 import io.kotest.core.spec.style.FunSpec
-import io.kotest.extensions.spring.wirespec.WirespecChannelContext
-import io.kotest.extensions.spring.wirespec.WirespecTestContext
-import io.kotest.extensions.spring.wirespec.channel.InMemoryMessageTransport
-import io.kotest.extensions.spring.wirespec.scenario
+import io.kotest.extensions.wirespec.WirespecChannelContext
+import io.kotest.extensions.wirespec.WirespecTestContext
+import io.kotest.extensions.wirespec.channel.InMemoryMessageTransport
+import io.kotest.extensions.wirespec.scenario
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 

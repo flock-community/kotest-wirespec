@@ -2,7 +2,7 @@ package example
 
 import example.generated.endpoint.GetPet
 import example.generated.kotest.getPet
-import io.kotest.extensions.spring.wirespec.SpringWirespecSpec
+import io.kotest.extensions.wirespec.SpringWirespecSpec
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 

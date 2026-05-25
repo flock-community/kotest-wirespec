@@ -1,12 +1,12 @@
-package io.kotest.extensions.spring.wirespec.example
+package io.kotest.extensions.wirespec.example
 
-import io.kotest.extensions.spring.wirespec.SpringWirespecSpec
-import io.kotest.extensions.spring.wirespec.example.generated.endpoint.CreatePet
-import io.kotest.extensions.spring.wirespec.example.generated.endpoint.GetPet
-import io.kotest.extensions.spring.wirespec.example.generated.kotest.createPet
-import io.kotest.extensions.spring.wirespec.example.generated.kotest.getPet
-import io.kotest.extensions.spring.wirespec.example.generated.kotest.onCreatePetCommand
-import io.kotest.extensions.spring.wirespec.example.generated.kotest.publishPetCreated
+import io.kotest.extensions.wirespec.SpringWirespecSpec
+import io.kotest.extensions.wirespec.example.generated.endpoint.CreatePet
+import io.kotest.extensions.wirespec.example.generated.endpoint.GetPet
+import io.kotest.extensions.wirespec.example.generated.kotest.createPet
+import io.kotest.extensions.wirespec.example.generated.kotest.getPet
+import io.kotest.extensions.wirespec.example.generated.kotest.onCreatePetCommand
+import io.kotest.extensions.wirespec.example.generated.kotest.publishPetCreated
 import io.kotest.matchers.shouldBe
 import io.kotest.property.Arb
 import io.kotest.property.arbitrary.string

@@ -1,9 +1,9 @@
-package io.kotest.extensions.spring.wirespec.example.controller
+package io.kotest.extensions.wirespec.example.controller
 
-import io.kotest.extensions.spring.wirespec.example.domain.Pet
-import io.kotest.extensions.spring.wirespec.example.domain.PetCreatedEvent
-import io.kotest.extensions.spring.wirespec.example.service.PetEventPublisher
-import io.kotest.extensions.spring.wirespec.example.service.PetRepository
+import io.kotest.extensions.wirespec.example.domain.Pet
+import io.kotest.extensions.wirespec.example.domain.PetCreatedEvent
+import io.kotest.extensions.wirespec.example.service.PetEventPublisher
+import io.kotest.extensions.wirespec.example.service.PetRepository
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse

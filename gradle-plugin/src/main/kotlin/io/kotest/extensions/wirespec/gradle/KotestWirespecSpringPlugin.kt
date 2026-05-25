@@ -1,9 +1,9 @@
-package io.kotest.extensions.spring.wirespec.gradle
+package io.kotest.extensions.wirespec.gradle
 
 import community.flock.wirespec.plugin.gradle.CompileWirespecTask
 import community.flock.wirespec.spring.extractor.gradle.ExtractWirespecTask
 import community.flock.wirespec.spring.extractor.gradle.WirespecExtractorExtension
-import io.kotest.extensions.spring.wirespec.emitter.TypesafeDslEmitter
+import io.kotest.extensions.wirespec.emitter.TypesafeDslEmitter
 import org.gradle.api.Action
 import org.gradle.api.Plugin
 import org.gradle.api.Project

@@ -1,8 +1,8 @@
-package io.kotest.extensions.spring.wirespec.dsl
+package io.kotest.extensions.wirespec.dsl
 
 import community.flock.wirespec.integration.kotest.KotestWirespecGeneratorBuilder
 import community.flock.wirespec.kotlin.Wirespec
-import io.kotest.extensions.spring.wirespec.validation.ChannelReflection
+import io.kotest.extensions.wirespec.validation.ChannelReflection
 import io.kotest.property.Arb
 import kotlin.reflect.KClass
 import kotlin.time.Duration

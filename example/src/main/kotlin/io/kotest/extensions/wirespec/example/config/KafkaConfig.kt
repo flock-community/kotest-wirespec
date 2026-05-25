@@ -1,6 +1,6 @@
-package io.kotest.extensions.spring.wirespec.example.config
+package io.kotest.extensions.wirespec.example.config
 
-import io.kotest.extensions.spring.wirespec.example.domain.PetCreatedEvent
+import io.kotest.extensions.wirespec.example.domain.PetCreatedEvent
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration

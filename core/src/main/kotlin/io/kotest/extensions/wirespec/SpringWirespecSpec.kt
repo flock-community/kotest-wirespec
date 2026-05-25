@@ -1,12 +1,12 @@
-package io.kotest.extensions.spring.wirespec
+package io.kotest.extensions.wirespec
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import community.flock.wirespec.integration.jackson.kotlin.WirespecSerialization
 import io.kotest.core.spec.style.FunSpec
-import io.kotest.extensions.spring.wirespec.channel.EmbeddedKafkaMessageTransport
-import io.kotest.extensions.spring.wirespec.dsl.ScenarioBuilder
+import io.kotest.extensions.wirespec.channel.EmbeddedKafkaMessageTransport
+import io.kotest.extensions.wirespec.dsl.ScenarioBuilder
 import io.kotest.extensions.spring.SpringRootTestExtension
-import io.kotest.extensions.spring.wirespec.spring.MockMvcTransportation
+import io.kotest.extensions.wirespec.spring.MockMvcTransportation
 import io.kotest.property.RandomSource
 import io.kotest.property.checkAll
 import org.springframework.beans.factory.annotation.Autowired
@@ -99,7 +99,7 @@ abstract class SpringWirespecSpec(body: SpringWirespecSpec.() -> Unit = {}) : Fu
      *
      * Each iteration runs as a single scenario against [endpointCtx] +
      * [channelCtx]. To use a different context for a particular test, wrap the
-     * body in [wirespec][io.kotest.extensions.spring.wirespec.wirespec]:
+     * body in [wirespec][io.kotest.extensions.wirespec.wirespec]:
      *
      * ```
      * test("alt transport") {

@@ -1,4 +1,4 @@
-package io.kotest.extensions.spring.wirespec.dsl
+package io.kotest.extensions.wirespec.dsl
 
 import kotlin.time.Duration
 

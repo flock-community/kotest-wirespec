@@ -1,4 +1,4 @@
-package io.kotest.extensions.spring.wirespec.emitter
+package io.kotest.extensions.wirespec.emitter
 
 import community.flock.wirespec.compiler.core.emit.Emitted
 import community.flock.wirespec.compiler.core.emit.PackageName
@@ -23,10 +23,10 @@ object DslFileEmitter {
         val irFile = file("${shape.name}Dsl") {
             `package`(kotestPkg)
 
-            import("io.kotest.extensions.spring.wirespec.dsl", "ResultRef")
-            import("io.kotest.extensions.spring.wirespec.dsl", "ScenarioBuilder")
-            import("io.kotest.extensions.spring.wirespec.dsl", "WirespecScenarioDsl")
-            import("io.kotest.extensions.spring.wirespec.dsl", "EndpointCallBuilder.StreamingMode")
+            import("io.kotest.extensions.wirespec.dsl", "ResultRef")
+            import("io.kotest.extensions.wirespec.dsl", "ScenarioBuilder")
+            import("io.kotest.extensions.wirespec.dsl", "WirespecScenarioDsl")
+            import("io.kotest.extensions.wirespec.dsl", "EndpointCallBuilder.StreamingMode")
             import("kotlin.time", "Duration")
             import(endpointPkg, shape.name)
             if (shape.bodyType != null) {

@@ -1,4 +1,4 @@
-package io.kotest.extensions.spring.wirespec.example.domain
+package io.kotest.extensions.wirespec.example.domain
 
 data class PetCreatedEvent(
     val id: String,

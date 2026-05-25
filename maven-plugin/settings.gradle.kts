@@ -12,4 +12,4 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "kotest-extensions-spring-wirespec-maven-plugin"
+rootProject.name = "kotest-wirespec-maven-plugin"

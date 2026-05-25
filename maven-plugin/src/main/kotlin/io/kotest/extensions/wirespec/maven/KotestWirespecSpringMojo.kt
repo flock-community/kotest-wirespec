@@ -1,4 +1,4 @@
-package io.kotest.extensions.spring.wirespec.maven
+package io.kotest.extensions.wirespec.maven
 
 import org.apache.maven.execution.MavenSession
 import org.apache.maven.plugin.AbstractMojo
@@ -106,10 +106,10 @@ class KotestWirespecSpringMojo : AbstractMojo() {
         // when the upstream compiler and our emitter share a plugin realm.
         const val WIRESPEC_VERSION = "0.19.0-RC.3"
 
-        const val EMITTER_GROUP = "io.kotest.extensions"
-        const val EMITTER_ARTIFACT = "kotest-extensions-spring-wirespec-emitter"
+        const val EMITTER_GROUP = "io.kotest.extensions.wirespec"
+        const val EMITTER_ARTIFACT = "kotest-wirespec-emitter"
         const val EMITTER_VERSION = "0.0.0-SNAPSHOT"
         const val EMITTER_FQCN =
-            "io.kotest.extensions.spring.wirespec.emitter.TypesafeDslEmitter"
+            "io.kotest.extensions.wirespec.emitter.TypesafeDslEmitter"
     }
 }

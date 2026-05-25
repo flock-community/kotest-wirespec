@@ -1,4 +1,4 @@
-package io.kotest.extensions.spring.wirespec.dsl
+package io.kotest.extensions.wirespec.dsl
 
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe

@@ -38,7 +38,7 @@ A simple value type binding the two things the runner needs: a
 factories.
 
 ```kotlin
-package io.kotest.extensions.spring.wirespec
+package io.kotest.extensions.wirespec
 
 class WirespecTestContext(
     val transportation: Wirespec.Transportation,
@@ -59,7 +59,7 @@ class WirespecTestContext(
 Owns the Spring Boot lifecycle for Kotest users. Installs into any spec style:
 
 ```kotlin
-package io.kotest.extensions.spring.wirespec.kotest
+package io.kotest.extensions.wirespec.kotest
 
 class SpringWirespecExtension(
     private val application: KClass<*>,
@@ -84,7 +84,7 @@ from `checkAll`. A convenience overload accepts an explicit seed for one-shot
 runs outside `checkAll`.
 
 ```kotlin
-package io.kotest.extensions.spring.wirespec
+package io.kotest.extensions.wirespec
 
 suspend fun PropertyContext.scenario(
     ctx: WirespecTestContext,
@@ -258,6 +258,6 @@ edits:
    `: FunSpec({ val ws = install(SpringWirespecExtension(App::class)); … })`.
 2. Wrap each existing `scenario("name", iterations = N) { … }` body in
    `test("name") { checkAll<Int>(iterations = N) { scenario(ws.context) { … } } }`.
-3. Delete the import of `io.kotest.extensions.spring.wirespec.SpringScenarioSpec`.
+3. Delete the import of `io.kotest.extensions.wirespec.SpringScenarioSpec`.
 
 The block bodies themselves are unchanged.

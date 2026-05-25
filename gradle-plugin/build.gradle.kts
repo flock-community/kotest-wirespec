@@ -4,7 +4,7 @@ plugins {
     id("com.gradle.plugin-publish") version "1.3.0"
 }
 
-group = "io.kotest.extensions"
+group = "io.kotest.extensions.wirespec"
 version = (providers.gradleProperty("version").orNull) ?: "0.0.0-SNAPSHOT"
 
 java {
@@ -20,7 +20,7 @@ dependencies {
     implementation(gradleApi())
     implementation("community.flock.wirespec.plugin.gradle:community.flock.wirespec.plugin.gradle.gradle.plugin:0.19.0-RC.3")
     implementation("community.flock.wirespec.spring:wirespec-spring-extractor-gradle-plugin:0.0.8")
-    implementation("io.kotest.extensions:kotest-extensions-spring-wirespec-emitter:0.0.0-SNAPSHOT")
+    implementation("io.kotest.extensions.wirespec:kotest-wirespec-emitter:0.0.0-SNAPSHOT")
 
     testImplementation(kotlin("test"))
     testImplementation(gradleTestKit())
@@ -29,15 +29,15 @@ dependencies {
 }
 
 gradlePlugin {
-    website.set("https://github.com/kotest/kotest-extensions-spring-wirespec")
-    vcsUrl.set("https://github.com/kotest/kotest-extensions-spring-wirespec.git")
+    website.set("https://github.com/kotest/kotest-wirespec")
+    vcsUrl.set("https://github.com/kotest/kotest-wirespec.git")
     plugins {
         create("kotestSpringWirespec") {
-            id = "io.kotest.extensions.spring.wirespec"
+            id = "io.kotest.extensions.wirespec"
             displayName = "Kotest Spring Wirespec"
             description = "Extracts Wirespec contracts from Spring controllers and exposes a property-based scenario DSL for Kotest."
             tags.set(listOf("kotest", "spring", "wirespec", "property-based", "contract-testing"))
-            implementationClass = "io.kotest.extensions.spring.wirespec.gradle.KotestWirespecSpringPlugin"
+            implementationClass = "io.kotest.extensions.wirespec.gradle.KotestWirespecSpringPlugin"
         }
     }
 }

@@ -1,4 +1,4 @@
-package io.kotest.extensions.spring.wirespec.channel
+package io.kotest.extensions.wirespec.channel
 
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.consumer.KafkaConsumer

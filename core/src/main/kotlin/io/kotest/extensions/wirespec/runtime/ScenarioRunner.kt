@@ -1,20 +1,20 @@
-package io.kotest.extensions.spring.wirespec.runtime
+package io.kotest.extensions.wirespec.runtime
 
 import community.flock.wirespec.integration.kotest.kotestWirespecKotlinGenerator
 import community.flock.wirespec.kotlin.Wirespec
-import io.kotest.extensions.spring.wirespec.WirespecChannelContext
-import io.kotest.extensions.spring.wirespec.WirespecTestContext
-import io.kotest.extensions.spring.wirespec.channel.OutgoingRecord
-import io.kotest.extensions.spring.wirespec.dsl.ArbReceiver
-import io.kotest.extensions.spring.wirespec.dsl.ChannelCallBuilder
-import io.kotest.extensions.spring.wirespec.dsl.EndpointCallBuilder
-import io.kotest.extensions.spring.wirespec.dsl.Input
-import io.kotest.extensions.spring.wirespec.dsl.ResultRef
-import io.kotest.extensions.spring.wirespec.dsl.ScenarioBuilder
-import io.kotest.extensions.spring.wirespec.dsl.Step
-import io.kotest.extensions.spring.wirespec.validation.ChannelValidator
-import io.kotest.extensions.spring.wirespec.validation.ContractValidator
-import io.kotest.extensions.spring.wirespec.validation.EndpointReflection
+import io.kotest.extensions.wirespec.WirespecChannelContext
+import io.kotest.extensions.wirespec.WirespecTestContext
+import io.kotest.extensions.wirespec.channel.OutgoingRecord
+import io.kotest.extensions.wirespec.dsl.ArbReceiver
+import io.kotest.extensions.wirespec.dsl.ChannelCallBuilder
+import io.kotest.extensions.wirespec.dsl.EndpointCallBuilder
+import io.kotest.extensions.wirespec.dsl.Input
+import io.kotest.extensions.wirespec.dsl.ResultRef
+import io.kotest.extensions.wirespec.dsl.ScenarioBuilder
+import io.kotest.extensions.wirespec.dsl.Step
+import io.kotest.extensions.wirespec.validation.ChannelValidator
+import io.kotest.extensions.wirespec.validation.ContractValidator
+import io.kotest.extensions.wirespec.validation.EndpointReflection
 import io.kotest.property.RandomSource
 import kotlinx.coroutines.runBlocking
 

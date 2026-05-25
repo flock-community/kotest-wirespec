@@ -1,4 +1,4 @@
-package io.kotest.extensions.spring.wirespec.channel
+package io.kotest.extensions.wirespec.channel
 
 import kotlinx.coroutines.delay
 import kotlin.time.Duration

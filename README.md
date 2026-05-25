@@ -10,7 +10,7 @@ A Gradle plugin that extracts an API contract from your Spring `@RestController`
 plugins {
     id("org.springframework.boot") version "3.4.1"
     kotlin("jvm") version "2.3.0"
-    id("io.kotest.extensions.spring.wirespec") version "0.1.0"
+    id("io.kotest.extensions.wirespec") version "0.1.0"
 }
 
 kotestWirespecSpring {
@@ -81,9 +81,9 @@ That's the whole setup. Each `gradle test` (or `mvn verify`) now does:
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import community.flock.wirespec.integration.jackson.kotlin.WirespecSerialization
 import io.kotest.core.spec.style.FunSpec
-import io.kotest.extensions.spring.wirespec.WirespecTestContext
-import io.kotest.extensions.spring.wirespec.kotest.SpringSpecExtension
-import io.kotest.extensions.spring.wirespec.scenario
+import io.kotest.extensions.wirespec.WirespecTestContext
+import io.kotest.extensions.wirespec.kotest.SpringSpecExtension
+import io.kotest.extensions.wirespec.scenario
 import io.kotest.property.checkAll
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.web.server.LocalServerPort

@@ -1,4 +1,4 @@
-package io.kotest.extensions.spring.wirespec.dsl
+package io.kotest.extensions.wirespec.dsl
 
 import community.flock.wirespec.kotlin.Wirespec
 import kotlin.reflect.KClass

@@ -1,4 +1,4 @@
-package io.kotest.extensions.spring.wirespec.maven
+package io.kotest.extensions.wirespec.maven
 
 import org.apache.maven.shared.invoker.DefaultInvocationRequest
 import org.apache.maven.shared.invoker.DefaultInvoker

@@ -1,8 +1,8 @@
-package io.kotest.extensions.spring.wirespec
+package io.kotest.extensions.wirespec
 
-import io.kotest.extensions.spring.wirespec.dsl.ArbReceiver
-import io.kotest.extensions.spring.wirespec.dsl.ScenarioBuilder
-import io.kotest.extensions.spring.wirespec.runtime.ScenarioRunner
+import io.kotest.extensions.wirespec.dsl.ArbReceiver
+import io.kotest.extensions.wirespec.dsl.ScenarioBuilder
+import io.kotest.extensions.wirespec.runtime.ScenarioRunner
 import io.kotest.property.PropertyContext
 import io.kotest.property.RandomSource
 

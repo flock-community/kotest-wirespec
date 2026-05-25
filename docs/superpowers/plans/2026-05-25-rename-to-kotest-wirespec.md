@@ -95,7 +95,7 @@ Edit `runtime/src/main/kotlin/io/kotest/extensions/spring/wirespec/SpringWirespe
 Change the import:
 
 ```kotlin
-import io.kotest.extensions.spring.wirespec.kotest.SpringSpecExtension
+import io.kotest.extensions.wirespec.kotest.SpringSpecExtension
 ```
 
 to:
@@ -321,7 +321,7 @@ rmdir emitter/src/test/kotlin/io/kotest/extensions/spring/wirespec
 rmdir emitter/src/test/kotlin/io/kotest/extensions/spring
 ```
 
-(`emitter/src/test/resources/golden/` files are text content; their `import io.kotest.extensions.spring.wirespec...` lines get the sed update in Task 2.4.)
+(`emitter/src/test/resources/golden/` files are text content; their `import io.kotest.extensions.wirespec...` lines get the sed update in Task 2.4.)
 
 - [ ] **Step 4: Repeat for gradle-plugin**
 
@@ -388,7 +388,7 @@ EOF
 ### Task 2.4: Update package declarations, imports, and string references
 
 **Files:**
-- Modify: every `.kt`, `.kts`, `.xml`, `.md`, `.properties` file that currently contains `io.kotest.extensions.spring.wirespec` (43 files at start of this plan; verify with the grep below).
+- Modify: every `.kt`, `.kts`, `.xml`, `.md`, `.properties` file that currently contains `io.kotest.extensions.wirespec` (43 files at start of this plan; verify with the grep below).
 - Modify: every file containing the artifactId strings `kotest-extensions-spring-wirespec*`.
 
 - [ ] **Step 1: Survey the files that need editing**
@@ -496,7 +496,7 @@ git add -A
 git commit -m "$(cat <<'EOF'
 refactor: update package declarations, imports, and artifactId strings
 
-Replaces all io.kotest.extensions.spring.wirespec → io.kotest.extensions.wirespec
+Replaces all io.kotest.extensions.wirespec → io.kotest.extensions.wirespec
 and kotest-extensions-spring-wirespec* → kotest-wirespec* references across
 Kotlin sources, Gradle scripts, the Maven plugin descriptor, the fixture POM,
 the README, and the emitter's golden test fixtures. Behaviour unchanged.
@@ -580,14 +580,14 @@ gradlePlugin {
 
 Edit `example/build.gradle.kts`:
 
-- Plugins block: `id("io.kotest.extensions.spring.wirespec")` → `id("io.kotest.extensions.wirespec")`
+- Plugins block: `id("io.kotest.extensions.wirespec")` → `id("io.kotest.extensions.wirespec")`
 - DSL block: `kotestWirespecSpring { … }` → `kotestWirespec { … }`
 
 - [ ] **Step 6: Run example tests**
 
 Run: `./gradlew :example:clean :example:test --no-daemon`
 
-Expected: BUILD SUCCESSFUL. The plugin id, DSL extension, and class names all need to line up; if Gradle reports `Plugin with id 'io.kotest.extensions.spring.wirespec' not found`, you missed the example update in Step 5.
+Expected: BUILD SUCCESSFUL. The plugin id, DSL extension, and class names all need to line up; if Gradle reports `Plugin with id 'io.kotest.extensions.wirespec' not found`, you missed the example update in Step 5.
 
 - [ ] **Step 7: Commit**
 
@@ -596,7 +596,7 @@ git add -A
 git commit -m "$(cat <<'EOF'
 refactor(gradle-plugin): rename plugin id, class, and DSL extension (drop Spring)
 
-Plugin id io.kotest.extensions.spring.wirespec → io.kotest.extensions.wirespec.
+Plugin id io.kotest.extensions.wirespec → io.kotest.extensions.wirespec.
 DSL kotestWirespecSpring { … } → kotestWirespec { … }. Class
 KotestWirespecSpringPlugin → KotestWirespecPlugin (likewise the extension
 class). Spring is still the only extractor wired today; the rename leaves
@@ -642,7 +642,7 @@ Edit `maven-plugin/src/main/resources-template/META-INF/maven/plugin.xml`:
 
 Edit `maven-plugin/src/test/resources/fixture/pom.xml`:
 
-- `<groupId>io.kotest.extensions.spring.wirespec.fixture</groupId>` → `<groupId>io.kotest.extensions.wirespec.fixture</groupId>`
+- `<groupId>io.kotest.extensions.wirespec.fixture</groupId>` → `<groupId>io.kotest.extensions.wirespec.fixture</groupId>`
 - The plugin `<groupId>io.kotest.extensions</groupId>` referencing the maven plugin → `<groupId>io.kotest.extensions.wirespec</groupId>`
 - The runtime dep `<groupId>io.kotest.extensions</groupId><artifactId>kotest-wirespec</artifactId>` (group already updated to `io.kotest.extensions.wirespec` by Task 2.4 if it caught both groupId strings; verify manually).
 
@@ -664,7 +664,7 @@ If any matches, update them in line with Steps 2–3.
 
 Run: `(cd maven-plugin && ./../gradlew test --no-daemon)`
 
-Expected: BUILD SUCCESSFUL. This is the slow path — it does `publishToMavenLocal` for emitter and core then shells out `mvn verify` against the fixture. If the fixture compile fails with `package io.kotest.extensions.spring.wirespec does not exist`, the smoke spec inside the fixture (`maven-plugin/src/test/resources/fixture/src/test/kotlin/example/PetSmokeSpec.kt`) needs a manual import update — the Task 2.4 sed should have handled it; verify and fix.
+Expected: BUILD SUCCESSFUL. This is the slow path — it does `publishToMavenLocal` for emitter and core then shells out `mvn verify` against the fixture. If the fixture compile fails with `package io.kotest.extensions.wirespec does not exist`, the smoke spec inside the fixture (`maven-plugin/src/test/resources/fixture/src/test/kotlin/example/PetSmokeSpec.kt`) needs a manual import update — the Task 2.4 sed should have handled it; verify and fix.
 
 - [ ] **Step 7: Commit**
 
@@ -1791,10 +1791,10 @@ EOF
 Edit `README.md`:
 
 - Line 1: `# kotest-extensions-spring-wirespec` → `# kotest-wirespec`
-- The Gradle sample block `id("io.kotest.extensions.spring.wirespec") version "0.1.0"` → `id("io.kotest.extensions.wirespec") version "0.1.0"`
+- The Gradle sample block `id("io.kotest.extensions.wirespec") version "0.1.0"` → `id("io.kotest.extensions.wirespec") version "0.1.0"`
 - `kotestWirespecSpring { basePackage.set("com.example.api") }` → `kotestWirespec { basePackage.set("com.example.api") }`
 - The Maven snippet's `<groupId>io.kotest.extensions</groupId>` → `<groupId>io.kotest.extensions.wirespec</groupId>` and `<artifactId>kotest-extensions-spring-wirespec-maven-plugin</artifactId>` → `<artifactId>kotest-wirespec-maven-plugin</artifactId>`
-- All imports in the code samples: `io.kotest.extensions.spring.wirespec.*` → `io.kotest.extensions.wirespec.*`
+- All imports in the code samples: `io.kotest.extensions.wirespec.*` → `io.kotest.extensions.wirespec.*`
 - The "SpringSpecExtension is a thin SpecExtension wrapper..." paragraph (lines 134–140) is now obsolete; replace with:
 
 ```markdown

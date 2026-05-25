@@ -1,4 +1,4 @@
-package io.kotest.extensions.spring.wirespec.validation
+package io.kotest.extensions.wirespec.validation
 
 import community.flock.wirespec.kotlin.Wirespec
 import java.lang.reflect.Constructor

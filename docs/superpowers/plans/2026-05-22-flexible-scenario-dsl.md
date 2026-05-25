@@ -105,10 +105,10 @@ git commit -m "refactor(runtime): expose SpringTestContext + WebClientTransporta
 Create `runtime/src/main/kotlin/io/kotest/extensions/spring/wirespec/WirespecTestContext.kt` with:
 
 ```kotlin
-package io.kotest.extensions.spring.wirespec
+package io.kotest.extensions.wirespec
 
 import community.flock.wirespec.kotlin.Wirespec
-import io.kotest.extensions.spring.wirespec.spring.WebClientTransportation
+import io.kotest.extensions.wirespec.spring.WebClientTransportation
 import org.springframework.web.reactive.function.client.WebClient
 
 /**
@@ -162,7 +162,7 @@ git commit -m "feat(runtime): add WirespecTestContext with http(baseUrl, seriali
 Create `runtime/src/test/kotlin/io/kotest/extensions/spring/wirespec/ScenarioTest.kt`:
 
 ```kotlin
-package io.kotest.extensions.spring.wirespec
+package io.kotest.extensions.wirespec
 
 import community.flock.wirespec.integration.jackson.kotlin.WirespecSerialization
 import community.flock.wirespec.kotlin.Wirespec
@@ -207,7 +207,7 @@ class ScenarioTest : FunSpec({
 
 - [ ] **Step 2: Run test to verify it fails (missing `scenario` symbol)**
 
-Run: `./gradlew :runtime:test --tests "io.kotest.extensions.spring.wirespec.ScenarioTest"`
+Run: `./gradlew :runtime:test --tests "io.kotest.extensions.wirespec.ScenarioTest"`
 Expected: FAIL — compilation error, "unresolved reference: scenario".
 
 - [ ] **Step 3: Create `Scenario.kt` with both overloads**
@@ -215,11 +215,11 @@ Expected: FAIL — compilation error, "unresolved reference: scenario".
 Create `runtime/src/main/kotlin/io/kotest/extensions/spring/wirespec/Scenario.kt`:
 
 ```kotlin
-package io.kotest.extensions.spring.wirespec
+package io.kotest.extensions.wirespec
 
-import io.kotest.extensions.spring.wirespec.dsl.ArbReceiver
-import io.kotest.extensions.spring.wirespec.dsl.ScenarioBuilder
-import io.kotest.extensions.spring.wirespec.runtime.ScenarioRunner
+import io.kotest.extensions.wirespec.dsl.ArbReceiver
+import io.kotest.extensions.wirespec.dsl.ScenarioBuilder
+import io.kotest.extensions.wirespec.runtime.ScenarioRunner
 import io.kotest.property.PropertyContext
 import io.kotest.property.RandomSource
 
@@ -283,7 +283,7 @@ private suspend fun runScenarioOnce(
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `./gradlew :runtime:test --tests "io.kotest.extensions.spring.wirespec.ScenarioTest"`
+Run: `./gradlew :runtime:test --tests "io.kotest.extensions.wirespec.ScenarioTest"`
 Expected: PASS — both tests green.
 
 - [ ] **Step 5: Commit**
@@ -306,13 +306,13 @@ git commit -m "feat(runtime): add scenario(ctx) DSL entry-point + seed overload"
 Create `runtime/src/main/kotlin/io/kotest/extensions/spring/wirespec/kotest/SpringWirespecExtension.kt`:
 
 ```kotlin
-package io.kotest.extensions.spring.wirespec.kotest
+package io.kotest.extensions.wirespec.kotest
 
 import io.kotest.core.listeners.AfterSpecListener
 import io.kotest.core.listeners.BeforeSpecListener
 import io.kotest.core.spec.Spec
-import io.kotest.extensions.spring.wirespec.WirespecTestContext
-import io.kotest.extensions.spring.wirespec.spring.SpringTestContext
+import io.kotest.extensions.wirespec.WirespecTestContext
+import io.kotest.extensions.wirespec.spring.SpringTestContext
 import kotlin.reflect.KClass
 
 /**
@@ -429,22 +429,22 @@ git commit -m "refactor(runtime): drop SpringScenarioSpec; lifecycle now via Spr
 Replace the entire body of `example/src/test/kotlin/io/kotest/extensions/spring/wirespec/example/PetScenariosSpec.kt` with:
 
 ```kotlin
-package io.kotest.extensions.spring.wirespec.example
+package io.kotest.extensions.wirespec.example
 
 import io.kotest.core.spec.style.FunSpec
-import io.kotest.extensions.spring.wirespec.WirespecTestContext
-import io.kotest.extensions.spring.wirespec.example.generated.endpoint.CreatePet
-import io.kotest.extensions.spring.wirespec.example.generated.endpoint.DeletePet
-import io.kotest.extensions.spring.wirespec.example.generated.endpoint.GetPet
-import io.kotest.extensions.spring.wirespec.example.generated.endpoint.ListPets
-import io.kotest.extensions.spring.wirespec.example.generated.endpoint.UpdatePet
-import io.kotest.extensions.spring.wirespec.example.generated.kotest.createPet
-import io.kotest.extensions.spring.wirespec.example.generated.kotest.deletePet
-import io.kotest.extensions.spring.wirespec.example.generated.kotest.getPet
-import io.kotest.extensions.spring.wirespec.example.generated.kotest.listPets
-import io.kotest.extensions.spring.wirespec.example.generated.kotest.updatePet
-import io.kotest.extensions.spring.wirespec.kotest.SpringWirespecExtension
-import io.kotest.extensions.spring.wirespec.scenario
+import io.kotest.extensions.wirespec.WirespecTestContext
+import io.kotest.extensions.wirespec.example.generated.endpoint.CreatePet
+import io.kotest.extensions.wirespec.example.generated.endpoint.DeletePet
+import io.kotest.extensions.wirespec.example.generated.endpoint.GetPet
+import io.kotest.extensions.wirespec.example.generated.endpoint.ListPets
+import io.kotest.extensions.wirespec.example.generated.endpoint.UpdatePet
+import io.kotest.extensions.wirespec.example.generated.kotest.createPet
+import io.kotest.extensions.wirespec.example.generated.kotest.deletePet
+import io.kotest.extensions.wirespec.example.generated.kotest.getPet
+import io.kotest.extensions.wirespec.example.generated.kotest.listPets
+import io.kotest.extensions.wirespec.example.generated.kotest.updatePet
+import io.kotest.extensions.wirespec.kotest.SpringWirespecExtension
+import io.kotest.extensions.wirespec.scenario
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.property.Arb
@@ -505,7 +505,7 @@ class PetScenariosSpec : FunSpec({
 
 - [ ] **Step 2: Run the rewritten spec end-to-end**
 
-Run: `./gradlew :example:test --tests "io.kotest.extensions.spring.wirespec.example.PetScenariosSpec"`
+Run: `./gradlew :example:test --tests "io.kotest.extensions.wirespec.example.PetScenariosSpec"`
 Expected: PASS — both `pet CRUD` and `typesafe queries` tests green.
 
 - [ ] **Step 3: Commit**
@@ -527,22 +527,22 @@ git commit -m "test(example): migrate PetScenariosSpec to FunSpec + checkAll + s
 Create `example/src/test/kotlin/io/kotest/extensions/spring/wirespec/example/PetScenariosJUnitTest.kt`:
 
 ```kotlin
-package io.kotest.extensions.spring.wirespec.example
+package io.kotest.extensions.wirespec.example
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import community.flock.wirespec.integration.jackson.kotlin.WirespecSerialization
-import io.kotest.extensions.spring.wirespec.WirespecTestContext
-import io.kotest.extensions.spring.wirespec.example.generated.endpoint.CreatePet
-import io.kotest.extensions.spring.wirespec.example.generated.endpoint.DeletePet
-import io.kotest.extensions.spring.wirespec.example.generated.endpoint.GetPet
-import io.kotest.extensions.spring.wirespec.example.generated.endpoint.ListPets
-import io.kotest.extensions.spring.wirespec.example.generated.endpoint.UpdatePet
-import io.kotest.extensions.spring.wirespec.example.generated.kotest.createPet
-import io.kotest.extensions.spring.wirespec.example.generated.kotest.deletePet
-import io.kotest.extensions.spring.wirespec.example.generated.kotest.getPet
-import io.kotest.extensions.spring.wirespec.example.generated.kotest.listPets
-import io.kotest.extensions.spring.wirespec.example.generated.kotest.updatePet
-import io.kotest.extensions.spring.wirespec.scenario
+import io.kotest.extensions.wirespec.WirespecTestContext
+import io.kotest.extensions.wirespec.example.generated.endpoint.CreatePet
+import io.kotest.extensions.wirespec.example.generated.endpoint.DeletePet
+import io.kotest.extensions.wirespec.example.generated.endpoint.GetPet
+import io.kotest.extensions.wirespec.example.generated.endpoint.ListPets
+import io.kotest.extensions.wirespec.example.generated.endpoint.UpdatePet
+import io.kotest.extensions.wirespec.example.generated.kotest.createPet
+import io.kotest.extensions.wirespec.example.generated.kotest.deletePet
+import io.kotest.extensions.wirespec.example.generated.kotest.getPet
+import io.kotest.extensions.wirespec.example.generated.kotest.listPets
+import io.kotest.extensions.wirespec.example.generated.kotest.updatePet
+import io.kotest.extensions.wirespec.scenario
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.property.Arb
@@ -619,7 +619,7 @@ class PetScenariosJUnitTest {
 
 - [ ] **Step 2: Run the JUnit test**
 
-Run: `./gradlew :example:test --tests "io.kotest.extensions.spring.wirespec.example.PetScenariosJUnitTest"`
+Run: `./gradlew :example:test --tests "io.kotest.extensions.wirespec.example.PetScenariosJUnitTest"`
 Expected: PASS — both `pet CRUD` and `typesafe queries` test methods green.
 
 - [ ] **Step 3: Commit**
@@ -649,7 +649,7 @@ Expected: matches only in `docs/superpowers/specs/2026-05-22-flexible-scenario-d
 
 In `example/src/test/kotlin/io/kotest/extensions/spring/wirespec/example/PetScenariosSpec.kt`, temporarily change the inner `expecting<UpdatePet.Response200> { it.body.name shouldNotBe null }` to `it.body.name shouldBe "definitely-not-this-string"` and re-run that one test:
 
-Run: `./gradlew :example:test --tests "io.kotest.extensions.spring.wirespec.example.PetScenariosSpec.pet CRUD" --info`
+Run: `./gradlew :example:test --tests "io.kotest.extensions.wirespec.example.PetScenariosSpec.pet CRUD" --info`
 
 Expected: FAIL — failure message includes a `seed=<long>` line (kotest-property's built-in seed reporting). Revert the change after observing the seed:
 

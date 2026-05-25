@@ -1,4 +1,4 @@
-package io.kotest.extensions.spring.wirespec.channel
+package io.kotest.extensions.wirespec.channel
 
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldHaveSize

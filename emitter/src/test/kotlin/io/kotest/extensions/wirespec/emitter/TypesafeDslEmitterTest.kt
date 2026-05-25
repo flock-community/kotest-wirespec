@@ -1,4 +1,4 @@
-package io.kotest.extensions.spring.wirespec.emitter
+package io.kotest.extensions.wirespec.emitter
 
 import community.flock.wirespec.compiler.core.FileUri
 import community.flock.wirespec.compiler.core.emit.EmitShared

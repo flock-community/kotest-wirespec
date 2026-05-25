@@ -1,7 +1,7 @@
-package io.kotest.extensions.spring.wirespec
+package io.kotest.extensions.wirespec
 
 import community.flock.wirespec.kotlin.Wirespec
-import io.kotest.extensions.spring.wirespec.channel.MessageTransport
+import io.kotest.extensions.wirespec.channel.MessageTransport
 
 /**
  * Framework-neutral handle for the channel half of the scenario DSL: a

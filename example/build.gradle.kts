@@ -3,10 +3,10 @@ plugins {
     id("io.spring.dependency-management") version "1.1.7"
     kotlin("jvm") version "2.3.0"
     kotlin("plugin.spring") version "2.3.0"
-    id("io.kotest.extensions.spring.wirespec")
+    id("io.kotest.extensions.wirespec")
 }
 
-group = "io.kotest.extensions.spring.wirespec.example"
+group = "io.kotest.extensions.wirespec.example"
 version = "0.0.1-SNAPSHOT"
 
 java {
@@ -39,7 +39,7 @@ kotlin {
 }
 
 kotestWirespecSpring {
-    basePackage.set("io.kotest.extensions.spring.wirespec.example")
+    basePackage.set("io.kotest.extensions.wirespec.example")
 }
 
 tasks.withType<Test> {

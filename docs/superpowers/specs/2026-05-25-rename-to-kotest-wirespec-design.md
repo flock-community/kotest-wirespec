@@ -256,13 +256,13 @@ The `@Autowired applicationContext` declaration is the one piece of Spring glue 
 
 ## Emitter module (`kotest-wirespec-emitter`)
 
-Pure rename — `io.kotest.extensions.spring.wirespec.emitter.*` → `io.kotest.extensions.wirespec.emitter.*`. No code or behaviour change. Golden test fixtures and their expected outputs get the same find-and-replace. Published group flips to `io.kotest.extensions.wirespec`.
+Pure rename — `io.kotest.extensions.wirespec.emitter.*` → `io.kotest.extensions.wirespec.emitter.*`. No code or behaviour change. Golden test fixtures and their expected outputs get the same find-and-replace. Published group flips to `io.kotest.extensions.wirespec`.
 
 ## Gradle plugin
 
 ### Identity
 
-- Plugin id: `io.kotest.extensions.wirespec` (was `io.kotest.extensions.spring.wirespec`)
+- Plugin id: `io.kotest.extensions.wirespec` (was `io.kotest.extensions.wirespec`)
 - Plugin class: `io.kotest.extensions.wirespec.gradle.KotestWirespecPlugin`
 - DSL extension: `kotestWirespec { … }` (was `kotestWirespecSpring { … }`)
 - `displayName` / `description` updated; no longer says "Spring" in the title (still references Spring as one supported extractor).

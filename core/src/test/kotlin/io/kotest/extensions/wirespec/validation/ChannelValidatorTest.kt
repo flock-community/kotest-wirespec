@@ -1,4 +1,4 @@
-package io.kotest.extensions.spring.wirespec.validation
+package io.kotest.extensions.wirespec.validation
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import community.flock.wirespec.integration.jackson.kotlin.WirespecSerialization

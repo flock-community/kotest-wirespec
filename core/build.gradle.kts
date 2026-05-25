@@ -97,7 +97,7 @@ publishing {
     publications {
         create<MavenPublication>("maven") {
             from(components["java"])
-            artifactId = "kotest-extensions-spring-wirespec"
+            artifactId = "kotest-wirespec"
             pom {
                 name.set("Kotest Spring Wirespec Runtime")
                 description.set("Property-based scenario DSL for validating Spring endpoints against Wirespec contracts.")

@@ -14,4 +14,4 @@ dependencyResolutionManagement {
 
 includeBuild("../emitter")
 
-rootProject.name = "kotest-extensions-spring-wirespec-gradle"
+rootProject.name = "kotest-wirespec-gradle"

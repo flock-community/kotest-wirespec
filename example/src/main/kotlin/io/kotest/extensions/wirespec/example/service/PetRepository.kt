@@ -1,13 +1,13 @@
-package io.kotest.extensions.spring.wirespec.example.service
+package io.kotest.extensions.wirespec.example.service
 
-import io.kotest.extensions.spring.wirespec.example.domain.Pet
+import io.kotest.extensions.wirespec.example.domain.Pet
 import org.springframework.stereotype.Component
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 
 /**
  * In-memory, concurrent-safe pet store. Used as the backing for the
- * [io.kotest.extensions.spring.wirespec.example.controller.PetController]; a
+ * [io.kotest.extensions.wirespec.example.controller.PetController]; a
  * real app would substitute a reactive Mongo/JPA repository here.
  */
 @Component

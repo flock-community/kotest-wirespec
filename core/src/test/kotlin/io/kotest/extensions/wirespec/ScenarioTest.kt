@@ -1,4 +1,4 @@
-package io.kotest.extensions.spring.wirespec
+package io.kotest.extensions.wirespec
 
 import community.flock.wirespec.integration.jackson.kotlin.WirespecSerialization
 import community.flock.wirespec.kotlin.Wirespec

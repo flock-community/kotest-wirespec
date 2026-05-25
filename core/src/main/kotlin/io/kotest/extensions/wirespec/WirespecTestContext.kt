@@ -1,7 +1,7 @@
-package io.kotest.extensions.spring.wirespec
+package io.kotest.extensions.wirespec
 
 import community.flock.wirespec.kotlin.Wirespec
-import io.kotest.extensions.spring.wirespec.spring.WebClientTransportation
+import io.kotest.extensions.wirespec.spring.WebClientTransportation
 import org.springframework.web.reactive.function.client.WebClient
 
 /**

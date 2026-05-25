@@ -1,6 +1,6 @@
-package io.kotest.extensions.spring.wirespec.example.service
+package io.kotest.extensions.wirespec.example.service
 
-import io.kotest.extensions.spring.wirespec.example.domain.PetCreatedEvent
+import io.kotest.extensions.wirespec.example.domain.PetCreatedEvent
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.stereotype.Service
 

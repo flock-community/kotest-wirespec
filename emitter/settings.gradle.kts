@@ -16,4 +16,4 @@ dependencyResolutionManagement {
 // and will hijack any consumer dependency on `io.kotest.extensions:<rootProjectName>`
 // — including the unrelated `io.kotest.extensions:kotest-extensions-spring`
 // SpringExtension artifact that the runtime depends on.
-rootProject.name = "kotest-extensions-spring-wirespec-emitter"
+rootProject.name = "kotest-wirespec-emitter"

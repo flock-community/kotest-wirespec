@@ -1,4 +1,4 @@
-package io.kotest.extensions.spring.wirespec.example.domain
+package io.kotest.extensions.wirespec.example.domain
 
 /**
  * Tiny in-memory pet entity. Fields stay strings to keep the Wirespec contract

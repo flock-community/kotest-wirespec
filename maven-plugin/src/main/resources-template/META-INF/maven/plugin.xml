@@ -3,7 +3,7 @@
   <name>Kotest Spring Wirespec Maven Plugin</name>
   <description>Extracts Wirespec contracts from Spring controllers and generates a typesafe Kotest DSL.</description>
   <groupId>io.kotest.extensions</groupId>
-  <artifactId>kotest-extensions-spring-wirespec-maven-plugin</artifactId>
+  <artifactId>kotest-wirespec-maven-plugin</artifactId>
   <version>${projectVersion}</version>
   <goalPrefix>kotest-wirespec</goalPrefix>
   <isolatedRealm>false</isolatedRealm>
@@ -22,7 +22,7 @@
       <requiresOnline>false</requiresOnline>
       <inheritedByDefault>true</inheritedByDefault>
       <phase>generate-test-sources</phase>
-      <implementation>io.kotest.extensions.spring.wirespec.maven.KotestWirespecSpringMojo</implementation>
+      <implementation>io.kotest.extensions.wirespec.maven.KotestWirespecSpringMojo</implementation>
       <language>java</language>
       <instantiationStrategy>per-lookup</instantiationStrategy>
       <executionStrategy>once-per-session</executionStrategy>

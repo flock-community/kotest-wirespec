@@ -1,4 +1,4 @@
-package io.kotest.extensions.spring.wirespec.spring
+package io.kotest.extensions.wirespec.spring
 
 import community.flock.wirespec.kotlin.Wirespec
 import kotlinx.coroutines.reactor.awaitSingle

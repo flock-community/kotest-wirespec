@@ -1,4 +1,4 @@
-package io.kotest.extensions.spring.wirespec.example
+package io.kotest.extensions.wirespec.example
 
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication

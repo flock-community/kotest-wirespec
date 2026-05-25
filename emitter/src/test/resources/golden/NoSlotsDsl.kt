@@ -1,8 +1,8 @@
 package com.example.api.kotest
-import io.kotest.extensions.spring.wirespec.dsl.ResultRef
-import io.kotest.extensions.spring.wirespec.dsl.ScenarioBuilder
-import io.kotest.extensions.spring.wirespec.dsl.WirespecScenarioDsl
-import io.kotest.extensions.spring.wirespec.dsl.EndpointCallBuilder.StreamingMode
+import io.kotest.extensions.wirespec.dsl.ResultRef
+import io.kotest.extensions.wirespec.dsl.ScenarioBuilder
+import io.kotest.extensions.wirespec.dsl.WirespecScenarioDsl
+import io.kotest.extensions.wirespec.dsl.EndpointCallBuilder.StreamingMode
 import kotlin.time.Duration
 import com.example.api.endpoint.NoSlots
 public val ScenarioBuilder.noSlots: NoSlotsCall
