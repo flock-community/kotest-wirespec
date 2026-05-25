@@ -1,5 +1,8 @@
-package io.kotest.extensions.wirespec.channel
+package io.kotest.extensions.wirespec.spring
 
+import io.kotest.extensions.wirespec.channel.IncomingRecord
+import io.kotest.extensions.wirespec.channel.MessageTransport
+import io.kotest.extensions.wirespec.channel.OutgoingRecord
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.clients.producer.KafkaProducer

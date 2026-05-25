@@ -29,6 +29,7 @@ dependencies {
     implementation("io.swagger.core.v3:swagger-annotations:2.2.25")
 
     testImplementation(project(":core"))
+    testImplementation(project(":spring"))
     testImplementation("org.springframework.kafka:spring-kafka-test")
 }
 
