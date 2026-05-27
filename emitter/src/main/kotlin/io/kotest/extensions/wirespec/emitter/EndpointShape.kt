@@ -40,7 +40,12 @@ data class EndpointShape(
                 endpoint.headers.forEach { add(it.reference) }
                 if (bodyRef != null) add(bodyRef)
             }
-            val modelImports = refs.flatMap(::collectCustomNames).distinct()
+            val bodyFieldRefs = (bodyRef as? Reference.Custom)
+                ?.let { types[it.value] }
+                ?.shape?.value
+                ?.map { it.reference }
+                ?: emptyList()
+            val modelImports = (refs + bodyFieldRefs).flatMap(::collectCustomNames).distinct()
 
             return EndpointShape(
                 name = endpoint.identifier.value,

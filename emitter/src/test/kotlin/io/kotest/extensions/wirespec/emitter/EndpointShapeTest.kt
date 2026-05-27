@@ -5,7 +5,9 @@ import community.flock.wirespec.compiler.core.parse.ast.Endpoint
 import community.flock.wirespec.compiler.core.parse.ast.Field
 import community.flock.wirespec.compiler.core.parse.ast.FieldIdentifier
 import community.flock.wirespec.compiler.core.parse.ast.Reference
+import community.flock.wirespec.compiler.core.parse.ast.Type
 import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.shouldBe
 
 class EndpointShapeTest : FunSpec({
@@ -88,5 +90,45 @@ class EndpointShapeTest : FunSpec({
 
         shape.queryFields.map { it.name } shouldBe listOf("limit", "offset")
         shape.queryFields.map { it.kotlinType } shouldBe listOf("Int", "Int")
+    }
+
+    test("modelImports includes custom types referenced by body fields") {
+        val createPetRequest = Type(
+            comment = null,
+            annotations = emptyList(),
+            identifier = DefinitionIdentifier("CreatePetRequest"),
+            shape = Type.Shape(
+                value = listOf(
+                    Field(emptyList(), FieldIdentifier("tag"), Reference.Custom("Tag", false)),
+                    Field(emptyList(), FieldIdentifier("toys"), Reference.Iterable(Reference.Custom("Toy", false), false)),
+                    Field(emptyList(), FieldIdentifier("name"), Reference.Primitive(Reference.Primitive.Type.String(null), false)),
+                ),
+            ),
+            extends = emptyList(),
+        )
+        val endpoint = Endpoint(
+            comment = null,
+            annotations = emptyList(),
+            identifier = DefinitionIdentifier("PetCreate"),
+            method = Endpoint.Method.POST,
+            path = listOf(Endpoint.Segment.Literal("api"), Endpoint.Segment.Literal("pets")),
+            queries = emptyList(),
+            headers = emptyList(),
+            requests = listOf(
+                Endpoint.Request(
+                    content = Endpoint.Content(
+                        type = "application/json",
+                        reference = Reference.Custom("CreatePetRequest", isNullable = false),
+                    ),
+                ),
+            ),
+            responses = emptyList(),
+        )
+
+        val shape = EndpointShape.from(endpoint, types = mapOf("CreatePetRequest" to createPetRequest))
+
+        shape.modelImports shouldContain "CreatePetRequest"
+        shape.modelImports shouldContain "Tag"
+        shape.modelImports shouldContain "Toy"
     }
 })
