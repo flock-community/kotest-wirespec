@@ -22,7 +22,12 @@ data class ChannelShape(
                 ?.map { EndpointShape.NamedTypedField(it.identifier.value, KotlinTypeMapper.map(it.reference)) }
                 ?: emptyList()
 
-            val modelImports = collectCustomNames(payloadRef).distinct()
+            val payloadFieldRefs = (payloadRef as? Reference.Custom)
+                ?.let { types[it.value] }
+                ?.shape?.value
+                ?.map { it.reference }
+                ?: emptyList()
+            val modelImports = (listOf(payloadRef) + payloadFieldRefs).flatMap(::collectCustomNames).distinct()
 
             return ChannelShape(
                 name = channel.identifier.value,

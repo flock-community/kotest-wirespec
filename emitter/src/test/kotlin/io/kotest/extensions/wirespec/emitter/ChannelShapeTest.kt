@@ -7,6 +7,7 @@ import community.flock.wirespec.compiler.core.parse.ast.FieldIdentifier
 import community.flock.wirespec.compiler.core.parse.ast.Reference
 import community.flock.wirespec.compiler.core.parse.ast.Type
 import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.shouldBe
 
 class ChannelShapeTest : FunSpec({
@@ -71,5 +72,31 @@ class ChannelShapeTest : FunSpec({
         shape.payloadType shouldBe "List<Item>"
         shape.payloadFields shouldBe emptyList()
         shape.modelImports shouldBe listOf("Item")
+    }
+
+    test("modelImports includes custom types referenced by payload fields") {
+        val petCreated = Type(
+            comment = null,
+            annotations = emptyList(),
+            identifier = DefinitionIdentifier("PetCreated"),
+            shape = Type.Shape(
+                value = listOf(
+                    Field(emptyList(), FieldIdentifier("id"), stringRef()),
+                    Field(emptyList(), FieldIdentifier("owner"), Reference.Custom("Owner", false)),
+                ),
+            ),
+            extends = emptyList(),
+        )
+        val channel = Channel(
+            comment = null,
+            annotations = emptyList(),
+            identifier = DefinitionIdentifier("PetCreatedChannel"),
+            reference = Reference.Custom("PetCreated", false),
+        )
+
+        val shape = ChannelShape.from(channel, types = mapOf("PetCreated" to petCreated))
+
+        shape.modelImports shouldContain "PetCreated"
+        shape.modelImports shouldContain "Owner"
     }
 })
