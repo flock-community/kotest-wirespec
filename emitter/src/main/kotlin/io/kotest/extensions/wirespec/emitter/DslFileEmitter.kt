@@ -34,7 +34,6 @@ object DslFileEmitter {
             }
             shape.modelImports.forEach { import(modelPkg, it) }
 
-            raw(renderExtensionFunction(shape))
             raw(renderCallClass(shape))
             if (shape.bodyType != null && shape.bodyFields.isNotEmpty()) {
                 raw(renderBodyBuilder(shape.bodyType, shape.bodyFields))
@@ -43,10 +42,6 @@ object DslFileEmitter {
 
         return Emitted(file = filePath, result = KotlinGenerator.generate(irFile))
     }
-
-    private fun renderExtensionFunction(shape: EndpointShape): String =
-        "public val ScenarioBuilder.${shape.dslName}: ${shape.name}Call\n" +
-            "    get() = ${shape.name}Call(this)"
 
     private fun renderCallClass(shape: EndpointShape): String = buildString {
         appendLine("@WirespecScenarioDsl")

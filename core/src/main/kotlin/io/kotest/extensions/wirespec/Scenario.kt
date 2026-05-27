@@ -1,10 +1,13 @@
 package io.kotest.extensions.wirespec
 
+import io.kotest.core.test.TestScope
+import io.kotest.extensions.wirespec.context.ContextRegistry
 import io.kotest.extensions.wirespec.dsl.ArbReceiver
 import io.kotest.extensions.wirespec.dsl.ScenarioBuilder
 import io.kotest.extensions.wirespec.runtime.ScenarioRunner
 import io.kotest.property.PropertyContext
 import io.kotest.property.RandomSource
+import io.kotest.property.checkAll
 
 /**
  * Run a single iteration of the scenario DSL against [endpointCtx] (and
@@ -35,6 +38,61 @@ suspend fun scenario(
     block: ScenarioBuilder.() -> Unit,
 ) {
     runScenarioOnce(endpointCtx, channelCtx, RandomSource.seeded(seed), block)
+}
+
+/**
+ * Run a scenario inside a plain Kotest spec (`FunSpec`, `WordSpec`, …) with no
+ * base class. The endpoint (and channel) context is auto-resolved from the
+ * running spec via the [ContextProvider][io.kotest.extensions.wirespec.context.ContextProvider]
+ * SPI — on the JVM, mounting `@ApplyExtension(SpringRootTestExtension::class)` and
+ * adding `kotest-wirespec-spring` lets the spring provider resolve a `MockMvc`-backed
+ * context by reflecting the spec's `@Autowired ApplicationContext`.
+ *
+ * When [iterations] > 1 the block is wrapped in kotest-property's `checkAll`, so a
+ * failing run reports its seed for reproducibility; otherwise it runs once.
+ */
+suspend fun TestScope.scenario(
+    iterations: Int = 1,
+    block: ScenarioBuilder.() -> Unit,
+) {
+    val spec = testCase.spec
+    val endpointCtx = ContextRegistry.providers.firstNotNullOfOrNull { it.endpointContext(spec) }
+        ?: error(
+            "No WirespecTestContext available for ${spec::class.simpleName}. " +
+                "Add `io.kotest.extensions.wirespec:kotest-wirespec-spring` to the test classpath " +
+                "and `@ApplyExtension(SpringRootTestExtension::class)` to the spec, or pass an " +
+                "explicit context: scenario(ctx, iterations = …) { … }.",
+        )
+    val channelCtx = ContextRegistry.providers.firstNotNullOfOrNull { it.channelContext(spec) }
+    runScenarioIterations(endpointCtx, channelCtx, iterations, block)
+}
+
+/**
+ * Explicit-context overload of [scenario] for custom transports (e.g. a
+ * `WebClient` against `@LocalServerPort`) — bypasses provider auto-resolution.
+ */
+suspend fun TestScope.scenario(
+    endpointCtx: WirespecTestContext,
+    channelCtx: WirespecChannelContext? = null,
+    iterations: Int = 1,
+    block: ScenarioBuilder.() -> Unit,
+) {
+    runScenarioIterations(endpointCtx, channelCtx, iterations, block)
+}
+
+private suspend fun runScenarioIterations(
+    endpointCtx: WirespecTestContext,
+    channelCtx: WirespecChannelContext?,
+    iterations: Int,
+    block: ScenarioBuilder.() -> Unit,
+) {
+    if (iterations <= 1) {
+        runScenarioOnce(endpointCtx, channelCtx, RandomSource.seeded(System.nanoTime()), block)
+    } else {
+        checkAll<Int>(iterations = iterations) {
+            runScenarioOnce(endpointCtx, channelCtx, randomSource(), block)
+        }
+    }
 }
 
 internal fun runScenarioOnce(

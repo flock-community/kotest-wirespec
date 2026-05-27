@@ -5,8 +5,6 @@ import io.kotest.extensions.wirespec.dsl.WirespecScenarioDsl
 import io.kotest.extensions.wirespec.dsl.EndpointCallBuilder.StreamingMode
 import kotlin.time.Duration
 import com.example.api.endpoint.NoSlots
-public val ScenarioBuilder.noSlots: NoSlotsCall
-    get() = NoSlotsCall(this)
 @WirespecScenarioDsl
 public class NoSlotsCall internal constructor(scenario: ScenarioBuilder) {
     @PublishedApi internal val inner = scenario.endpoint(NoSlots.Handler, NoSlots)

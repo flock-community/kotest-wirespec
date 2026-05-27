@@ -5,8 +5,6 @@ import io.kotest.extensions.wirespec.dsl.WirespecScenarioDsl
 import io.kotest.property.Arb
 import kotlin.time.Duration
 import com.example.api.channel.SimplePayloadChannel
-public val ScenarioBuilder.simplePayloadChannel: SimplePayloadChannelCall
-    get() = SimplePayloadChannelCall(this)
 @WirespecScenarioDsl
 public class SimplePayloadChannelCall internal constructor(scenario: ScenarioBuilder) {
     @PublishedApi internal val inner = scenario.channel<String>(SimplePayloadChannel::class)

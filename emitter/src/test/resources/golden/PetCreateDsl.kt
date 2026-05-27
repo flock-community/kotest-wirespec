@@ -7,8 +7,6 @@ import kotlin.time.Duration
 import com.example.api.endpoint.PetCreate
 import io.kotest.property.Arb
 import com.example.api.model.CreatePetRequest
-public val ScenarioBuilder.petCreate: PetCreateCall
-    get() = PetCreateCall(this)
 @WirespecScenarioDsl
 public class PetCreateCall internal constructor(scenario: ScenarioBuilder) {
     @PublishedApi internal val inner = scenario.endpoint(PetCreate.Handler, PetCreate)

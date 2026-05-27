@@ -38,7 +38,7 @@ class KotestWirespecMojo : AbstractMojo() {
     @Parameter(property = "kotestWirespec.spring")
     var spring: Boolean? = null
 
-    @Parameter(defaultValue = "\${project.build.directory}/wirespec/extracted")
+    @Parameter(defaultValue = "\${project.build.directory}/wirespec")
     lateinit var extractedDir: File
 
     @Parameter(defaultValue = "\${project.build.directory}/generated-sources/wirespec")
@@ -112,7 +112,7 @@ class KotestWirespecMojo : AbstractMojo() {
     private companion object {
         const val EXTRACTOR_GROUP = "community.flock.wirespec.spring"
         const val EXTRACTOR_ARTIFACT = "wirespec-spring-extractor-maven-plugin"
-        const val EXTRACTOR_VERSION = "0.0.5"
+        const val EXTRACTOR_VERSION = "0.0.10"
 
         const val WIRESPEC_GROUP = "community.flock.wirespec.plugin.maven"
         const val WIRESPEC_ARTIFACT = "wirespec-maven-plugin"

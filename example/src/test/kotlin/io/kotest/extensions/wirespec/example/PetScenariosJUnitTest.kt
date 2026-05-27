@@ -9,11 +9,7 @@ import io.kotest.extensions.wirespec.example.generated.endpoint.DeletePet
 import io.kotest.extensions.wirespec.example.generated.endpoint.GetPet
 import io.kotest.extensions.wirespec.example.generated.endpoint.ListPets
 import io.kotest.extensions.wirespec.example.generated.endpoint.UpdatePet
-import io.kotest.extensions.wirespec.example.generated.kotest.createPet
-import io.kotest.extensions.wirespec.example.generated.kotest.deletePet
-import io.kotest.extensions.wirespec.example.generated.kotest.getPet
-import io.kotest.extensions.wirespec.example.generated.kotest.listPets
-import io.kotest.extensions.wirespec.example.generated.kotest.updatePet
+import io.kotest.extensions.wirespec.example.generated.kotest.wirespec
 import io.kotest.extensions.wirespec.scenario
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -55,20 +51,20 @@ class PetScenariosJUnitTest {
     fun `pet CRUD`(): Unit = runBlocking {
         checkAll<Int>(iterations = 10) {
             scenario(ctx) {
-                val petId = createPet
+                val petId = wirespec.createPet
                     .returning<CreatePet.Response201, String> { it.body.id }
 
-                getPet.path(petId).expecting<GetPet.Response200>()
+                wirespec.getPet.path(petId).expecting<GetPet.Response200>()
 
                 val newName = Arb.string()
-                updatePet
+                wirespec.updatePet
                     .path(petId)
                     .body { name = newName }
                     .expecting<UpdatePet.Response200> { it.body.name shouldNotBe null }
 
-                getPet.path(petId).expecting<GetPet.Response200>()
-                deletePet.path(id = petId).expecting<DeletePet.Response204>()
-                getPet.path(petId).expecting<GetPet.Response404>()
+                wirespec.getPet.path(petId).expecting<GetPet.Response200>()
+                wirespec.deletePet.path(id = petId).expecting<DeletePet.Response204>()
+                wirespec.getPet.path(petId).expecting<GetPet.Response404>()
             }
         }
     }
@@ -77,8 +73,8 @@ class PetScenariosJUnitTest {
     fun `typesafe queries`(): Unit = runBlocking {
         checkAll<Int>(iterations = 8) {
             scenario(ctx) {
-                repeat(25) { createPet.expecting<CreatePet.Response201>() }
-                listPets
+                repeat(25) { wirespec.createPet.expecting<CreatePet.Response201>() }
+                wirespec.listPets
                     .query(limit = 10, offset = 0)
                     .expecting<ListPets.Response200> { resp ->
                         resp.body.content.size shouldBe resp.body.total.coerceAtMost(10)

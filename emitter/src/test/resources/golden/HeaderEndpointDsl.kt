@@ -5,8 +5,6 @@ import io.kotest.extensions.wirespec.dsl.WirespecScenarioDsl
 import io.kotest.extensions.wirespec.dsl.EndpointCallBuilder.StreamingMode
 import kotlin.time.Duration
 import com.example.api.endpoint.HeaderEndpoint
-public val ScenarioBuilder.headerEndpoint: HeaderEndpointCall
-    get() = HeaderEndpointCall(this)
 @WirespecScenarioDsl
 public class HeaderEndpointCall internal constructor(scenario: ScenarioBuilder) {
     @PublishedApi internal val inner = scenario.endpoint(HeaderEndpoint.Handler, HeaderEndpoint)

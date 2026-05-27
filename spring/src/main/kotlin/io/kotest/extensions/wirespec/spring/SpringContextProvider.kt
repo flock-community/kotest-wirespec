@@ -2,9 +2,7 @@ package io.kotest.extensions.wirespec.spring
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import community.flock.wirespec.integration.jackson.kotlin.WirespecSerialization
-import io.kotest.core.extensions.SpecExtension
 import io.kotest.core.spec.Spec
-import io.kotest.extensions.spring.SpringRootTestExtension
 import io.kotest.extensions.wirespec.WirespecChannelContext
 import io.kotest.extensions.wirespec.WirespecTestContext
 import io.kotest.extensions.wirespec.context.ContextProvider
@@ -20,21 +18,19 @@ import kotlin.reflect.jvm.isAccessible
  * module is on the test classpath via
  * `META-INF/services/io.kotest.extensions.wirespec.context.ContextProvider`.
  *
- * Resolution strategy:
- *   1. Mount the upstream [SpringRootTestExtension] so `@SpringBootTest` boots
- *      and `@Autowired` fields populate.
- *   2. For [endpointContext], reflect the spec for a property of type
+ * Spring lifecycle is mounted by the spec via
+ * `@ApplyExtension(SpringRootTestExtension::class)`, which boots `@SpringBootTest`
+ * and populates `@Autowired` fields. This provider then resolves contexts:
+ *   1. For [endpointContext], reflect the spec for a property of type
  *      [ApplicationContext], look up a `MockMvc` bean, wrap it in
  *      [MockMvcTransportation]. Returns `null` if either step fails — the
- *      user can then override `endpointCtx` manually (e.g. to use a
- *      `LocalServerPort`-driven [WebClientTransportation]).
- *   3. For [channelContext], try to resolve an `EmbeddedKafkaBroker` bean
+ *      user can then pass an explicit context (e.g. a `LocalServerPort`-driven
+ *      [WebClientTransportation]) to `scenario(ctx, …)`.
+ *   2. For [channelContext], try to resolve an `EmbeddedKafkaBroker` bean
  *      via [EmbeddedKafkaMessageTransport]. Returns `null` if the
  *      `@EmbeddedKafka` setup isn't present.
  */
 class SpringContextProvider : ContextProvider {
-
-    override fun specExtension(): SpecExtension = SpringRootTestExtension()
 
     override fun endpointContext(spec: Spec): WirespecTestContext? {
         val app = applicationContextOf(spec) ?: return null

@@ -23,7 +23,7 @@ class KotestWirespecPlugin : Plugin<Project> {
 
         project.pluginManager.apply("community.flock.wirespec.plugin.gradle")
 
-        val extractedDir = project.layout.buildDirectory.dir("wirespec/extracted")
+        val extractedDir = project.layout.buildDirectory.dir("wirespec")
         val generatedDir = project.layout.buildDirectory.dir("generated/wirespec")
         val defaultInputDir = project.layout.projectDirectory.dir("src/test/wirespec")
         val resolvedGeneratedPackage = extension.generatedPackage

@@ -9,8 +9,8 @@ import java.util.ServiceLoader
  * classpath today (spring), ordering is moot — revisit if a second provider
  * ever ships in the same artifact set.
  *
- * Internal to keep the surface tight; the public entry point is
- * [io.kotest.extensions.wirespec.WirespecSpec].
+ * Internal to keep the surface tight; the public entry point is the
+ * auto-resolving `TestScope.scenario { … }` in `Scenario.kt`.
  */
 internal object ContextRegistry {
     val providers: List<ContextProvider> by lazy {

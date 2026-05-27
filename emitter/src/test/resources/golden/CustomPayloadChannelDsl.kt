@@ -6,8 +6,6 @@ import io.kotest.property.Arb
 import kotlin.time.Duration
 import com.example.api.channel.PetCreatedChannel
 import com.example.api.model.PetCreated
-public val ScenarioBuilder.petCreatedChannel: PetCreatedChannelCall
-    get() = PetCreatedChannelCall(this)
 @WirespecScenarioDsl
 public class PetCreatedChannelCall internal constructor(scenario: ScenarioBuilder) {
     @PublishedApi internal val inner = scenario.channel<PetCreated>(PetCreatedChannel::class)

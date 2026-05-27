@@ -9,8 +9,9 @@ import io.kotest.extensions.wirespec.channel.MessageTransport
  * [Wirespec.Serialization] for typed (de)serialization of channel payloads.
  *
  * Build it directly when you already have both halves, or — for an
- * EmbeddedKafka-backed Spring test — rely on
- * [SpringWirespecSpec.channelCtx]'s auto-resolution.
+ * EmbeddedKafka-backed Spring test — let the spring [ContextProvider]
+ * [io.kotest.extensions.wirespec.context.ContextProvider] auto-resolve one for
+ * `scenario { … }`.
  */
 class WirespecChannelContext(
     val messaging: MessageTransport,

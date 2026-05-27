@@ -38,4 +38,34 @@ class ScenarioTest : FunSpec({
         }
         ran shouldBe true
     }
+
+    test("TestScope.scenario(ctx, iterations) folds checkAll and runs the block that many times") {
+        val counter = AtomicInteger(0)
+
+        scenario(ctx, iterations = 4) {
+            counter.incrementAndGet()
+        }
+
+        counter.get() shouldBe 4
+    }
+
+    test("TestScope.scenario(ctx) runs the block once by default") {
+        val counter = AtomicInteger(0)
+
+        scenario(ctx) {
+            counter.incrementAndGet()
+        }
+
+        counter.get() shouldBe 1
+    }
+
+    test("TestScope.scenario(iterations) auto-resolves the endpoint context from the registry") {
+        val counter = AtomicInteger(0)
+
+        scenario(iterations = 3) {
+            counter.incrementAndGet()
+        }
+
+        counter.get() shouldBe 3
+    }
 })

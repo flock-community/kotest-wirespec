@@ -1,14 +1,14 @@
 package io.kotest.extensions.wirespec.context
 
 import io.kotest.core.spec.style.FunSpec
-import io.kotest.matchers.shouldBe
+import io.kotest.matchers.collections.shouldContain
 
 class ContextRegistryTest : FunSpec({
 
-    test("ContextRegistry returns the providers registered via ServiceLoader") {
-        // No spring module on the test classpath, so there should be exactly zero
-        // providers discovered. Confirm the loader does not throw.
+    test("ContextRegistry discovers providers registered via ServiceLoader") {
+        // The core test classpath registers FakeEndpointContextProvider via
+        // META-INF/services; confirm the loader finds it without throwing.
         val providers = ContextRegistry.providers
-        providers.size shouldBe 0
+        providers.map { it::class } shouldContain FakeEndpointContextProvider::class
     }
 })

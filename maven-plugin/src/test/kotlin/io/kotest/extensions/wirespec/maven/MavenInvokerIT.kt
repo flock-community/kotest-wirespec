@@ -35,7 +35,7 @@ class MavenInvokerIT {
         assertEquals(0, result.exitCode, "mvn verify failed in fixture (see logs above)")
 
         val target = workDir.resolve("target")
-        val extracted = target.resolve("wirespec/extracted").toFile()
+        val extracted = target.resolve("wirespec").toFile()
         assertTrue(
             extracted.exists() && (extracted.listFiles()?.any { it.extension == "ws" } == true),
             "Expected at least one .ws file under $extracted",

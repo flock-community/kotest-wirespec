@@ -16,7 +16,9 @@ import java.net.URI
  * default when a spec boots Spring purely to exercise its controllers.
  *
  * Use this when the spec is annotated with `@AutoConfigureMockMvc` (or
- * `@WebMvcTest`); [SpringWirespecSpec] picks the bean up automatically.
+ * `@WebMvcTest`); the spring [ContextProvider]
+ * [io.kotest.extensions.wirespec.context.ContextProvider] picks the bean up
+ * automatically.
  */
 class MockMvcTransportation(
     private val mockMvc: MockMvc,

@@ -31,7 +31,6 @@ object ChannelDslFileEmitter {
             import(channelPkg, shape.name)
             shape.modelImports.forEach { import(modelPkg, it) }
 
-            raw(renderExtensionFunction(shape))
             raw(renderCallClass(shape))
             if (shape.payloadFields.isNotEmpty()) {
                 raw(renderPayloadBuilder(shape.payloadType, shape.payloadFields))
@@ -40,10 +39,6 @@ object ChannelDslFileEmitter {
 
         return Emitted(file = filePath, result = KotlinGenerator.generate(irFile))
     }
-
-    private fun renderExtensionFunction(shape: ChannelShape): String =
-        "public val ScenarioBuilder.${shape.dslName}: ${shape.name}Call\n" +
-            "    get() = ${shape.name}Call(this)"
 
     private fun renderCallClass(shape: ChannelShape): String = buildString {
         val call = "${shape.name}Call"

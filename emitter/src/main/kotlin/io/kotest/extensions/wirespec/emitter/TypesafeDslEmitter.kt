@@ -21,12 +21,28 @@ open class TypesafeDslEmitter(
         val statements = ast.modules.toList().flatMap { it.statements.toList() }
         val types = statements.filterIsInstance<Type>().associateBy { it.identifier.value }
 
-        val endpointDsl: List<Emitted> = statements
-            .filterIsInstance<Endpoint>()
-            .map { DslFileEmitter.emit(it, packageName, types) }
-        val channelDsl: List<Emitted> = statements
-            .filterIsInstance<Channel>()
-            .map { ChannelDslFileEmitter.emit(it, packageName, types) }
+        val endpoints = statements.filterIsInstance<Endpoint>()
+        val channels = statements.filterIsInstance<Channel>()
+
+        val endpointDsl: List<Emitted> = endpoints.map { DslFileEmitter.emit(it, packageName, types) }
+        val channelDsl: List<Emitted> = channels.map { ChannelDslFileEmitter.emit(it, packageName, types) }
+
+        // One catalog aggregates every endpoint and channel under
+        // `ScenarioBuilder.wirespec` so completion shows only the contract's
+        // operations. `emit` runs once per compilation with the full AST, so
+        // exactly one catalog is produced regardless of how many `.ws` modules.
+        val catalog: List<Emitted> =
+            if (endpoints.isEmpty() && channels.isEmpty()) {
+                emptyList()
+            } else {
+                listOf(
+                    CatalogFileEmitter.emit(
+                        endpointNames = endpoints.map { it.identifier.value },
+                        channelNames = channels.map { it.identifier.value },
+                        packageName = packageName,
+                    ),
+                )
+            }
 
         // Upstream's KotlinIrEmitter only adds `import Wirespec` to a generated
         // file when its owning module's `needImports()` returns true. That check
@@ -39,7 +55,7 @@ open class TypesafeDslEmitter(
             tail = base.tail.map(::fixWirespecImport),
         )
 
-        val extra = endpointDsl + channelDsl
+        val extra = endpointDsl + channelDsl + catalog
         return if (extra.isEmpty()) fixedBase else NonEmptyList(fixedBase.head, fixedBase.tail + extra)
     }
 

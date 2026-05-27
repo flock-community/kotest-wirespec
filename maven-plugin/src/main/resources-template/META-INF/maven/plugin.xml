@@ -82,7 +82,7 @@
         <basePackage implementation="java.lang.String">${'$'}{kotestWirespec.basePackage}</basePackage>
         <generatedPackage implementation="java.lang.String">${'$'}{kotestWirespec.generatedPackage}</generatedPackage>
         <spring implementation="java.lang.Boolean">${'$'}{kotestWirespec.spring}</spring>
-        <extractedDir implementation="java.io.File" default-value="${'$'}{project.build.directory}/wirespec/extracted"/>
+        <extractedDir implementation="java.io.File" default-value="${'$'}{project.build.directory}/wirespec"/>
         <generatedDir implementation="java.io.File" default-value="${'$'}{project.build.directory}/generated-sources/wirespec"/>
         <project implementation="org.apache.maven.project.MavenProject" default-value="${'$'}{project}"/>
         <session implementation="org.apache.maven.execution.MavenSession" default-value="${'$'}{session}"/>

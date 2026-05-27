@@ -90,8 +90,8 @@ internal class ScenarioRunner(
     private fun runChannel(call: ChannelCallBuilder<*>, index: Int) {
         val ctx = channelCtx ?: error(
             "Scenario step #${index + 1} (${call.reflection.channelName}) requires a channel context. " +
-                "Pass channelCtx to scenario(...) (or annotate the spec with @EmbeddedKafka and override " +
-                "SpringWirespecSpec.channelCtx)."
+                "Pass channelCtx to scenario(ctx, channelCtx = …) (or annotate the spec with " +
+                "@EmbeddedKafka so the spring provider resolves one)."
         )
         val topic = call.topicInput?.resolve(randomSource)
             ?: error("Scenario step #${index + 1} (${call.reflection.channelName}): .topic(...) is required.")

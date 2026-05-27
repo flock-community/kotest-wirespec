@@ -5,8 +5,6 @@ import io.kotest.extensions.wirespec.dsl.WirespecScenarioDsl
 import io.kotest.extensions.wirespec.dsl.EndpointCallBuilder.StreamingMode
 import kotlin.time.Duration
 import com.example.api.endpoint.PetList
-public val ScenarioBuilder.petList: PetListCall
-    get() = PetListCall(this)
 @WirespecScenarioDsl
 public class PetListCall internal constructor(scenario: ScenarioBuilder) {
     @PublishedApi internal val inner = scenario.endpoint(PetList.Handler, PetList)
