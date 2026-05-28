@@ -5,6 +5,7 @@ import community.flock.wirespec.compiler.core.parse.ast.Endpoint
 import community.flock.wirespec.compiler.core.parse.ast.Field
 import community.flock.wirespec.compiler.core.parse.ast.FieldIdentifier
 import community.flock.wirespec.compiler.core.parse.ast.Reference
+import community.flock.wirespec.compiler.core.parse.ast.Refined
 import community.flock.wirespec.compiler.core.parse.ast.Type
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldContain
@@ -130,5 +131,52 @@ class EndpointShapeTest : FunSpec({
         shape.modelImports shouldContain "CreatePetRequest"
         shape.modelImports shouldContain "Tag"
         shape.modelImports shouldContain "Toy"
+    }
+
+    test("body field whose ref is a Refined uses the refined's base type as kotlinType") {
+        val refinedName = Refined(
+            comment = null,
+            annotations = emptyList(),
+            identifier = DefinitionIdentifier("RefinedName"),
+            reference = Reference.Primitive(Reference.Primitive.Type.String(null), false),
+        )
+        val createPet = Type(
+            comment = null,
+            annotations = emptyList(),
+            identifier = DefinitionIdentifier("CreatePet"),
+            shape = Type.Shape(
+                value = listOf(
+                    Field(emptyList(), FieldIdentifier("name"), Reference.Custom("RefinedName", false)),
+                ),
+            ),
+            extends = emptyList(),
+        )
+        val endpoint = Endpoint(
+            comment = null,
+            annotations = emptyList(),
+            identifier = DefinitionIdentifier("PetCreate"),
+            method = Endpoint.Method.POST,
+            path = listOf(Endpoint.Segment.Literal("api"), Endpoint.Segment.Literal("pets")),
+            queries = emptyList(),
+            headers = emptyList(),
+            requests = listOf(
+                Endpoint.Request(
+                    content = Endpoint.Content(
+                        type = "application/json",
+                        reference = Reference.Custom("CreatePet", isNullable = false),
+                    ),
+                ),
+            ),
+            responses = emptyList(),
+        )
+
+        val shape = EndpointShape.from(
+            endpoint,
+            types = mapOf("CreatePet" to createPet),
+            refined = mapOf("RefinedName" to refinedName),
+        )
+
+        shape.bodyFields.single().name shouldBe "name"
+        shape.bodyFields.single().kotlinType shouldBe "String"
     }
 })

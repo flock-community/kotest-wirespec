@@ -3,6 +3,7 @@ package io.kotest.extensions.wirespec.emitter
 import community.flock.wirespec.compiler.core.emit.Emitted
 import community.flock.wirespec.compiler.core.emit.PackageName
 import community.flock.wirespec.compiler.core.parse.ast.Endpoint
+import community.flock.wirespec.compiler.core.parse.ast.Refined
 import community.flock.wirespec.compiler.core.parse.ast.Type
 import community.flock.wirespec.ir.core.file
 import community.flock.wirespec.ir.generator.KotlinGenerator
@@ -13,8 +14,9 @@ object DslFileEmitter {
         endpoint: Endpoint,
         packageName: PackageName,
         types: Map<String, Type> = emptyMap(),
+        refined: Map<String, Refined> = emptyMap(),
     ): Emitted {
-        val shape = EndpointShape.from(endpoint, types)
+        val shape = EndpointShape.from(endpoint, types, refined)
         val kotestPkg = "${packageName.value}.kotest"
         val endpointPkg = "${packageName.value}.endpoint"
         val modelPkg = "${packageName.value}.model"

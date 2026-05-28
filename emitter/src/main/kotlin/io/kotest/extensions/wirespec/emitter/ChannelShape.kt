@@ -2,6 +2,7 @@ package io.kotest.extensions.wirespec.emitter
 
 import community.flock.wirespec.compiler.core.parse.ast.Channel
 import community.flock.wirespec.compiler.core.parse.ast.Reference
+import community.flock.wirespec.compiler.core.parse.ast.Refined
 import community.flock.wirespec.compiler.core.parse.ast.Type
 
 data class ChannelShape(
@@ -13,13 +14,19 @@ data class ChannelShape(
     val dslName: String get() = name.replaceFirstChar(Char::lowercaseChar)
 
     companion object {
-        fun from(channel: Channel, types: Map<String, Type> = emptyMap()): ChannelShape {
+        fun from(
+            channel: Channel,
+            types: Map<String, Type> = emptyMap(),
+            refined: Map<String, Refined> = emptyMap(),
+        ): ChannelShape {
             val payloadRef = channel.reference
             val payloadType = KotlinTypeMapper.map(payloadRef)
+            // Payload-field kotlinType unwraps refined wrappers to their base primitive — same
+            // reason as EndpointShape.bodyFields (the runtime expects Arb<BaseType> for refined).
             val payloadFields = (payloadRef as? Reference.Custom)
                 ?.let { types[it.value] }
                 ?.shape?.value
-                ?.map { EndpointShape.NamedTypedField(it.identifier.value, KotlinTypeMapper.map(it.reference)) }
+                ?.map { EndpointShape.NamedTypedField(it.identifier.value, EndpointShape.mapWithRefinedUnwrap(it.reference, refined)) }
                 ?: emptyList()
 
             val payloadFieldRefs = (payloadRef as? Reference.Custom)

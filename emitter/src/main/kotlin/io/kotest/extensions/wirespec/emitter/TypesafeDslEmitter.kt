@@ -7,6 +7,7 @@ import community.flock.wirespec.compiler.core.emit.PackageName
 import community.flock.wirespec.compiler.core.parse.ast.AST
 import community.flock.wirespec.compiler.core.parse.ast.Channel
 import community.flock.wirespec.compiler.core.parse.ast.Endpoint
+import community.flock.wirespec.compiler.core.parse.ast.Refined
 import community.flock.wirespec.compiler.core.parse.ast.Type
 import community.flock.wirespec.compiler.utils.Logger
 import community.flock.wirespec.emitters.kotlin.KotlinIrEmitter
@@ -20,12 +21,13 @@ open class TypesafeDslEmitter(
         val base = super.emit(ast, logger)
         val statements = ast.modules.toList().flatMap { it.statements.toList() }
         val types = statements.filterIsInstance<Type>().associateBy { it.identifier.value }
+        val refined = statements.filterIsInstance<Refined>().associateBy { it.identifier.value }
 
         val endpoints = statements.filterIsInstance<Endpoint>()
         val channels = statements.filterIsInstance<Channel>()
 
-        val endpointDsl: List<Emitted> = endpoints.map { DslFileEmitter.emit(it, packageName, types) }
-        val channelDsl: List<Emitted> = channels.map { ChannelDslFileEmitter.emit(it, packageName, types) }
+        val endpointDsl: List<Emitted> = endpoints.map { DslFileEmitter.emit(it, packageName, types, refined) }
+        val channelDsl: List<Emitted> = channels.map { ChannelDslFileEmitter.emit(it, packageName, types, refined) }
 
         // One catalog aggregates every endpoint and channel under
         // `ScenarioBuilder.wirespec` so completion shows only the contract's
