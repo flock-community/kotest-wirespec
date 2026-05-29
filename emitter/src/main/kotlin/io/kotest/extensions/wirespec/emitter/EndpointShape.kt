@@ -11,12 +11,16 @@ data class EndpointShape(
     val queryFields: List<NamedTypedField>,
     val headerFields: List<NamedTypedField>,
     val bodyType: String?,
+    val bodyKind: BodyKind,
+    val bodyElementType: String?,
     val bodyFields: List<NamedTypedField>,
     val modelImports: List<String>,
 ) {
     val dslName: String get() = name.replaceFirstChar(Char::lowercaseChar)
 
     data class NamedTypedField(val name: String, val kotlinType: String)
+
+    enum class BodyKind { None, Object, List }
 
     companion object {
         fun from(
@@ -33,13 +37,25 @@ data class EndpointShape(
                 .map { NamedTypedField(it.identifier.value, KotlinTypeMapper.map(it.reference)) }
             val bodyRef = endpoint.requests.firstOrNull()?.content?.reference
             val bodyType = bodyRef?.let { if (it is Reference.Unit) null else KotlinTypeMapper.map(it) }
+
+            val (bodyKind, elementCustomName) = when (bodyRef) {
+                null, is Reference.Unit -> BodyKind.None to null
+                is Reference.Custom -> BodyKind.Object to bodyRef.value
+                is Reference.Iterable -> {
+                    val inner = bodyRef.reference
+                    if (inner is Reference.Custom) BodyKind.List to inner.value else BodyKind.None to null
+                }
+                else -> BodyKind.None to null
+            }
+            val bodyElementType = elementCustomName
+
             // Body-field kotlinType unwraps refined wrappers to their base primitive: the typed
             // body{} builder declares the field as Arb<BaseType>, and the runtime's RefinedWrapper
             // wraps each drawn primitive into the refined class via its single-arg ctor. Without
             // this unwrap, overriding a refined field at runtime throws "expected Arb<BaseType>
             // for refined …, got value of type …".
-            val bodyFields = (bodyRef as? Reference.Custom)
-                ?.let { types[it.value] }
+            val bodyFields = elementCustomName
+                ?.let { types[it] }
                 ?.shape?.value
                 ?.map { NamedTypedField(it.identifier.value, mapWithRefinedUnwrap(it.reference, refined)) }
                 ?: emptyList()
@@ -50,8 +66,8 @@ data class EndpointShape(
                 endpoint.headers.forEach { add(it.reference) }
                 if (bodyRef != null) add(bodyRef)
             }
-            val bodyFieldRefs = (bodyRef as? Reference.Custom)
-                ?.let { types[it.value] }
+            val bodyFieldRefs = elementCustomName
+                ?.let { types[it] }
                 ?.shape?.value
                 ?.map { it.reference }
                 ?: emptyList()
@@ -63,6 +79,8 @@ data class EndpointShape(
                 queryFields = queryFields,
                 headerFields = headerFields,
                 bodyType = bodyType,
+                bodyKind = bodyKind,
+                bodyElementType = bodyElementType,
                 bodyFields = bodyFields,
                 modelImports = modelImports,
             )

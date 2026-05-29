@@ -179,4 +179,76 @@ class EndpointShapeTest : FunSpec({
         shape.bodyFields.single().name shouldBe "name"
         shape.bodyFields.single().kotlinType shouldBe "String"
     }
+
+    test("Iterable<Custom> body — bodyKind is List, bodyFields come from element type") {
+        val stringRef = Reference.Primitive(Reference.Primitive.Type.String(null), false)
+        val pet = Type(
+            comment = null,
+            annotations = emptyList(),
+            identifier = DefinitionIdentifier("Pet"),
+            shape = Type.Shape(listOf(Field(emptyList(), FieldIdentifier("name"), stringRef))),
+            extends = emptyList(),
+        )
+        val endpoint = Endpoint(
+            comment = null,
+            annotations = emptyList(),
+            identifier = DefinitionIdentifier("PetCreateBulk"),
+            method = Endpoint.Method.POST,
+            path = emptyList(),
+            queries = emptyList(),
+            headers = emptyList(),
+            requests = listOf(
+                Endpoint.Request(
+                    content = Endpoint.Content(
+                        "application/json",
+                        Reference.Iterable(Reference.Custom("Pet", false), isNullable = false),
+                    ),
+                ),
+            ),
+            responses = emptyList(),
+        )
+
+        val shape = EndpointShape.from(endpoint, types = mapOf("Pet" to pet))
+
+        shape.bodyKind shouldBe EndpointShape.BodyKind.List
+        shape.bodyType shouldBe "List<Pet>"
+        shape.bodyElementType shouldBe "Pet"
+        shape.bodyFields.map { it.name } shouldBe listOf("name")
+    }
+
+    test("Custom body — bodyKind is Object, bodyFields come from the type itself") {
+        val stringRef = Reference.Primitive(Reference.Primitive.Type.String(null), false)
+        val createReq = Type(
+            comment = null,
+            annotations = emptyList(),
+            identifier = DefinitionIdentifier("CreatePetRequest"),
+            shape = Type.Shape(listOf(Field(emptyList(), FieldIdentifier("name"), stringRef))),
+            extends = emptyList(),
+        )
+        val endpoint = Endpoint(
+            comment = null,
+            annotations = emptyList(),
+            identifier = DefinitionIdentifier("PetCreate"),
+            method = Endpoint.Method.POST,
+            path = emptyList(),
+            queries = emptyList(),
+            headers = emptyList(),
+            requests = listOf(
+                Endpoint.Request(
+                    content = Endpoint.Content(
+                        "application/json",
+                        Reference.Custom("CreatePetRequest", false),
+                    ),
+                ),
+            ),
+            responses = emptyList(),
+        )
+
+        val shape = EndpointShape.from(endpoint, types = mapOf("CreatePetRequest" to createReq))
+
+        shape.bodyKind shouldBe EndpointShape.BodyKind.Object
+        shape.bodyType shouldBe "CreatePetRequest"
+        shape.bodyElementType shouldBe "CreatePetRequest"
+        shape.bodyFields.map { it.name } shouldBe listOf("name")
+    }
 })
