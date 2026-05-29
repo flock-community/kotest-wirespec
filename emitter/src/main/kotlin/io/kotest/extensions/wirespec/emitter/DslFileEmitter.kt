@@ -139,16 +139,18 @@ object DslFileEmitter {
                 }
                 is EndpointShape.BodyFieldShape.NestedObject -> {
                     val nestedBuilder = "${f.typeName}BodyBuilder"
+                    val nestedVar = "nested_${f.name}"
                     out.appendLine("$indent$receiver._${f.name}Block?.let { block ->")
-                    out.appendLine("$indent    val nested = $nestedBuilder().apply(block)")
-                    renderFieldRegistrations(out, "nested", f.fields, pathPrefix + nameSegment, "$indent    ")
+                    out.appendLine("$indent    val $nestedVar = $nestedBuilder().apply(block)")
+                    renderFieldRegistrations(out, nestedVar, f.fields, pathPrefix + nameSegment, "$indent    ")
                     out.appendLine("$indent}")
                 }
                 is EndpointShape.BodyFieldShape.NestedList -> {
                     val nestedBuilder = "${f.elementTypeName}BodyBuilder"
+                    val nestedVar = "nested_${f.name}"
                     out.appendLine("$indent$receiver._${f.name}Block?.let { block ->")
-                    out.appendLine("$indent    val nested = $nestedBuilder().apply(block)")
-                    renderFieldRegistrations(out, "nested", f.fields, pathPrefix + nameSegment + "\"*\"", "$indent    ")
+                    out.appendLine("$indent    val $nestedVar = $nestedBuilder().apply(block)")
+                    renderFieldRegistrations(out, nestedVar, f.fields, pathPrefix + nameSegment + "\"*\"", "$indent    ")
                     out.appendLine("$indent}")
                 }
             }

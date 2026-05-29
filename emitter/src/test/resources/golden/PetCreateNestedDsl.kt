@@ -21,12 +21,12 @@ public class PetCreateNestedCall internal constructor(scenario: ScenarioBuilder)
         inner.body {
             builder.name?.let { registerPath("name") { it } }
             builder._ownerBlock?.let { block ->
-                val nested = OwnerBodyBuilder().apply(block)
-                nested.email?.let { registerPath("owner", "email") { it } }
+                val nested_owner = OwnerBodyBuilder().apply(block)
+                nested_owner.email?.let { registerPath("owner", "email") { it } }
             }
             builder._tagsBlock?.let { block ->
-                val nested = TagBodyBuilder().apply(block)
-                nested.label?.let { registerPath("tags", "*", "label") { it } }
+                val nested_tags = TagBodyBuilder().apply(block)
+                nested_tags.label?.let { registerPath("tags", "*", "label") { it } }
             }
         }
     }
