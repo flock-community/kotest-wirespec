@@ -193,6 +193,62 @@ class DslFileEmitterTest : FunSpec({
         emitted.result shouldBe readGolden("PetCreateBulkDsl.kt")
         emitted.result shouldContain "registerPath(\"*\", \"name\")"
     }
+
+    test("nested object and nested list body fields — emit per-field nested builders") {
+        val stringRef = community.flock.wirespec.compiler.core.parse.ast.Reference.Primitive(
+            community.flock.wirespec.compiler.core.parse.ast.Reference.Primitive.Type.String(null), false
+        )
+        val ownerType = community.flock.wirespec.compiler.core.parse.ast.Type(
+            comment = null,
+            annotations = emptyList(),
+            identifier = community.flock.wirespec.compiler.core.parse.ast.DefinitionIdentifier("Owner"),
+            shape = community.flock.wirespec.compiler.core.parse.ast.Type.Shape(
+                listOf(community.flock.wirespec.compiler.core.parse.ast.Field(emptyList(), community.flock.wirespec.compiler.core.parse.ast.FieldIdentifier("email"), stringRef)),
+            ),
+            extends = emptyList(),
+        )
+        val tagType = community.flock.wirespec.compiler.core.parse.ast.Type(
+            comment = null,
+            annotations = emptyList(),
+            identifier = community.flock.wirespec.compiler.core.parse.ast.DefinitionIdentifier("Tag"),
+            shape = community.flock.wirespec.compiler.core.parse.ast.Type.Shape(
+                listOf(community.flock.wirespec.compiler.core.parse.ast.Field(emptyList(), community.flock.wirespec.compiler.core.parse.ast.FieldIdentifier("label"), stringRef)),
+            ),
+            extends = emptyList(),
+        )
+        val petType = community.flock.wirespec.compiler.core.parse.ast.Type(
+            comment = null,
+            annotations = emptyList(),
+            identifier = community.flock.wirespec.compiler.core.parse.ast.DefinitionIdentifier("Pet"),
+            shape = community.flock.wirespec.compiler.core.parse.ast.Type.Shape(
+                listOf(
+                    community.flock.wirespec.compiler.core.parse.ast.Field(emptyList(), community.flock.wirespec.compiler.core.parse.ast.FieldIdentifier("name"), stringRef),
+                    community.flock.wirespec.compiler.core.parse.ast.Field(emptyList(), community.flock.wirespec.compiler.core.parse.ast.FieldIdentifier("owner"), community.flock.wirespec.compiler.core.parse.ast.Reference.Custom("Owner", false)),
+                    community.flock.wirespec.compiler.core.parse.ast.Field(emptyList(), community.flock.wirespec.compiler.core.parse.ast.FieldIdentifier("tags"), community.flock.wirespec.compiler.core.parse.ast.Reference.Iterable(community.flock.wirespec.compiler.core.parse.ast.Reference.Custom("Tag", false), isNullable = false)),
+                ),
+            ),
+            extends = emptyList(),
+        )
+        val endpoint = Endpoint(
+            comment = null,
+            annotations = emptyList(),
+            identifier = community.flock.wirespec.compiler.core.parse.ast.DefinitionIdentifier("PetCreateNested"),
+            method = Endpoint.Method.POST,
+            path = listOf(Endpoint.Segment.Literal("api"), Endpoint.Segment.Literal("pets")),
+            queries = emptyList(),
+            headers = emptyList(),
+            requests = listOf(
+                Endpoint.Request(
+                    content = Endpoint.Content("application/json", community.flock.wirespec.compiler.core.parse.ast.Reference.Custom("Pet", false)),
+                ),
+            ),
+            responses = emptyList(),
+        )
+
+        val emitted = DslFileEmitter.emit(endpoint, pkg, types = mapOf("Pet" to petType, "Owner" to ownerType, "Tag" to tagType))
+        emitted.file shouldBe "com/example/api/kotest/PetCreateNestedDsl.kt"
+        emitted.result shouldBe readGolden("PetCreateNestedDsl.kt")
+    }
 })
 
 private fun readGolden(name: String): String =

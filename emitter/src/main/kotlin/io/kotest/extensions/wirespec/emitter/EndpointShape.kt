@@ -19,14 +19,48 @@ data class EndpointShape(
      * `bodyType` is `"List<T>"` for list bodies and not a valid Kotlin identifier segment.
      */
     val bodyElementType: String?,
-    val bodyFields: List<NamedTypedField>,
+    /**
+     * Recursive classification of body fields. Each field is one of:
+     *  - [BodyFieldShape.Primitive] — leaf, declared as `Arb<KotlinType>?`
+     *  - [BodyFieldShape.NestedObject] — drills into a known custom [Type], emits `<field> { … }` overload
+     *  - [BodyFieldShape.NestedList] — `Iterable<Custom>` of a known [Type], registers paths with `"*"` segment
+     */
+    val bodyFieldShapes: List<BodyFieldShape>,
     val modelImports: List<String>,
 ) {
     val dslName: String get() = name.replaceFirstChar(Char::lowercaseChar)
 
+    /** Flat top-level view of [bodyFieldShapes], kept for backwards-compat with callers that expect a simple list. */
+    val bodyFields: List<NamedTypedField> = bodyFieldShapes.map { f ->
+        NamedTypedField(
+            f.name,
+            when (f) {
+                is BodyFieldShape.Primitive -> f.kotlinType
+                is BodyFieldShape.NestedObject -> f.typeName
+                is BodyFieldShape.NestedList -> "List<${f.elementTypeName}>"
+            },
+        )
+    }
+
     data class NamedTypedField(val name: String, val kotlinType: String)
 
     enum class BodyKind { None, Object, List }
+
+    sealed interface BodyFieldShape {
+        val name: String
+
+        data class Primitive(override val name: String, val kotlinType: String) : BodyFieldShape
+        data class NestedObject(
+            override val name: String,
+            val typeName: String,
+            val fields: List<BodyFieldShape>,
+        ) : BodyFieldShape
+        data class NestedList(
+            override val name: String,
+            val elementTypeName: String,
+            val fields: List<BodyFieldShape>,
+        ) : BodyFieldShape
+    }
 
     companion object {
         fun from(
@@ -60,10 +94,8 @@ data class EndpointShape(
             // wraps each drawn primitive into the refined class via its single-arg ctor. Without
             // this unwrap, overriding a refined field at runtime throws "expected Arb<BaseType>
             // for refined …, got value of type …".
-            val bodyFields = elementCustomName
-                ?.let { types[it] }
-                ?.shape?.value
-                ?.map { NamedTypedField(it.identifier.value, mapWithRefinedUnwrap(it.reference, refined)) }
+            val bodyFieldShapes: List<BodyFieldShape> = elementCustomName
+                ?.let { extractBodyFields(it, types, refined, visited = emptySet()) }
                 ?: emptyList()
 
             val refs = buildList {
@@ -77,7 +109,10 @@ data class EndpointShape(
                 ?.shape?.value
                 ?.map { it.reference }
                 ?: emptyList()
-            val modelImports = (refs + bodyFieldRefs).flatMap(::collectCustomNames).distinct()
+            val modelImports = (
+                (refs + bodyFieldRefs).flatMap(::collectCustomNames) +
+                    collectNestedTypeNames(bodyFieldShapes)
+                ).distinct()
 
             return EndpointShape(
                 name = endpoint.identifier.value,
@@ -87,7 +122,7 @@ data class EndpointShape(
                 bodyType = bodyType,
                 bodyKind = bodyKind,
                 bodyElementType = bodyElementType,
-                bodyFields = bodyFields,
+                bodyFieldShapes = bodyFieldShapes,
                 modelImports = modelImports,
             )
         }
@@ -97,6 +132,52 @@ data class EndpointShape(
             is Reference.Iterable -> collectCustomNames(reference.reference)
             is Reference.Dict -> collectCustomNames(reference.reference)
             else -> emptyList()
+        }
+
+        private fun collectNestedTypeNames(fields: List<BodyFieldShape>): List<String> = fields.flatMap { f ->
+            when (f) {
+                is BodyFieldShape.Primitive -> emptyList()
+                is BodyFieldShape.NestedObject -> listOf(f.typeName) + collectNestedTypeNames(f.fields)
+                is BodyFieldShape.NestedList -> listOf(f.elementTypeName) + collectNestedTypeNames(f.fields)
+            }
+        }
+
+        private fun extractBodyFields(
+            typeName: String,
+            types: Map<String, Type>,
+            refined: Map<String, Refined>,
+            visited: Set<String>,
+        ): List<BodyFieldShape> {
+            if (typeName in visited) return emptyList()
+            val type = types[typeName] ?: return emptyList()
+            val nextVisited = visited + typeName
+            return type.shape.value.map { field ->
+                val name = field.identifier.value
+                when (val ref = field.reference) {
+                    is Reference.Custom -> if (ref.value in types) {
+                        BodyFieldShape.NestedObject(
+                            name = name,
+                            typeName = ref.value,
+                            fields = extractBodyFields(ref.value, types, refined, nextVisited),
+                        )
+                    } else {
+                        BodyFieldShape.Primitive(name, mapWithRefinedUnwrap(ref, refined))
+                    }
+                    is Reference.Iterable -> {
+                        val inner = ref.reference
+                        if (inner is Reference.Custom && inner.value in types) {
+                            BodyFieldShape.NestedList(
+                                name = name,
+                                elementTypeName = inner.value,
+                                fields = extractBodyFields(inner.value, types, refined, nextVisited),
+                            )
+                        } else {
+                            BodyFieldShape.Primitive(name, mapWithRefinedUnwrap(ref, refined))
+                        }
+                    }
+                    else -> BodyFieldShape.Primitive(name, mapWithRefinedUnwrap(ref, refined))
+                }
+            }
         }
 
         /** Like [KotlinTypeMapper.map], but replaces a `Reference.Custom` to a [Refined] with the
