@@ -40,11 +40,11 @@ object DslFileEmitter {
             if (shape.bodyType != null && shape.bodyFieldShapes.isNotEmpty()) {
                 val element = shape.bodyElementType
                     ?: error("bodyFieldShapes present but no bodyElementType for ${shape.name}")
-                raw(renderBodyBuilder(element, shape.bodyFieldShapes))
+                raw(renderBodyBuilder(element, shape.bodyFieldShapes, shape.name))
                 // Emit nested-type builders, deduped by type name. Each appears once per file.
                 val nestedDefs = collectNestedBuilders(shape.bodyFieldShapes, alreadyEmitted = setOf(element))
                 nestedDefs.forEach { (typeName, fields) ->
-                    raw(renderBodyBuilder(typeName, fields))
+                    raw(renderBodyBuilder(typeName, fields, shape.name))
                 }
             }
         }
@@ -112,12 +112,12 @@ object DslFileEmitter {
         appendLine("        apply { inner.body(arb) }")
         if (shape.bodyFieldShapes.isNotEmpty()) {
             val element = shape.bodyElementType ?: error("bodyFieldShapes present but no bodyElementType")
-            val builderName = "${element}BodyBuilder"
+            val builderName = "${shape.name}${element}BodyBuilder"
             val rootPrefix = if (shape.bodyKind == EndpointShape.BodyKind.List) listOf("\"*\"") else emptyList()
             appendLine("    public fun body(block: $builderName.() -> Unit): $call = apply {")
             appendLine("        val builder = $builderName().apply(block)")
             appendLine("        inner.body {")
-            renderFieldRegistrations(this, "builder", shape.bodyFieldShapes, rootPrefix, indent = "            ")
+            renderFieldRegistrations(this, "builder", shape.bodyFieldShapes, rootPrefix, indent = "            ", builderPrefix = shape.name)
             appendLine("        }")
             appendLine("    }")
         }
@@ -129,6 +129,7 @@ object DslFileEmitter {
         fields: List<EndpointShape.BodyFieldShape>,
         pathPrefix: List<String>,
         indent: String,
+        builderPrefix: String,
     ) {
         fields.forEach { f ->
             val nameSegment = "\"${f.name}\""
@@ -138,40 +139,44 @@ object DslFileEmitter {
                     out.appendLine("$indent$receiver.${f.name}?.let { registerPath($pathArgs) { it } }")
                 }
                 is EndpointShape.BodyFieldShape.NestedObject -> {
-                    val nestedBuilder = "${f.typeName}BodyBuilder"
+                    val nestedBuilder = "$builderPrefix${f.typeName}BodyBuilder"
                     val nestedVar = "nested_${f.name}"
                     out.appendLine("$indent$receiver._${f.name}Block?.let { block ->")
                     out.appendLine("$indent    val $nestedVar = $nestedBuilder().apply(block)")
-                    renderFieldRegistrations(out, nestedVar, f.fields, pathPrefix + nameSegment, "$indent    ")
+                    renderFieldRegistrations(out, nestedVar, f.fields, pathPrefix + nameSegment, "$indent    ", builderPrefix)
                     out.appendLine("$indent}")
                 }
                 is EndpointShape.BodyFieldShape.NestedList -> {
-                    val nestedBuilder = "${f.elementTypeName}BodyBuilder"
+                    val nestedBuilder = "$builderPrefix${f.elementTypeName}BodyBuilder"
                     val nestedVar = "nested_${f.name}"
                     out.appendLine("$indent$receiver._${f.name}Block?.let { block ->")
                     out.appendLine("$indent    val $nestedVar = $nestedBuilder().apply(block)")
-                    renderFieldRegistrations(out, nestedVar, f.fields, pathPrefix + nameSegment + "\"*\"", "$indent    ")
+                    renderFieldRegistrations(out, nestedVar, f.fields, pathPrefix + nameSegment + "\"*\"", "$indent    ", builderPrefix)
                     out.appendLine("$indent}")
                 }
             }
         }
     }
 
-    private fun renderBodyBuilder(elementType: String, fields: List<EndpointShape.BodyFieldShape>): String = buildString {
+    private fun renderBodyBuilder(
+        elementType: String,
+        fields: List<EndpointShape.BodyFieldShape>,
+        builderPrefix: String,
+    ): String = buildString {
         appendLine("@WirespecScenarioDsl")
-        appendLine("public class ${elementType}BodyBuilder {")
+        appendLine("public class $builderPrefix${elementType}BodyBuilder {")
         fields.forEach { f ->
             when (f) {
                 is EndpointShape.BodyFieldShape.Primitive -> {
                     appendLine("    public var ${f.name}: Arb<${f.kotlinType}>? = null")
                 }
                 is EndpointShape.BodyFieldShape.NestedObject -> {
-                    appendLine("    @PublishedApi internal var _${f.name}Block: (${f.typeName}BodyBuilder.() -> Unit)? = null")
-                    appendLine("    public fun ${f.name}(block: ${f.typeName}BodyBuilder.() -> Unit) { _${f.name}Block = block }")
+                    appendLine("    @PublishedApi internal var _${f.name}Block: ($builderPrefix${f.typeName}BodyBuilder.() -> Unit)? = null")
+                    appendLine("    public fun ${f.name}(block: $builderPrefix${f.typeName}BodyBuilder.() -> Unit) { _${f.name}Block = block }")
                 }
                 is EndpointShape.BodyFieldShape.NestedList -> {
-                    appendLine("    @PublishedApi internal var _${f.name}Block: (${f.elementTypeName}BodyBuilder.() -> Unit)? = null")
-                    appendLine("    public fun ${f.name}(block: ${f.elementTypeName}BodyBuilder.() -> Unit) { _${f.name}Block = block }")
+                    appendLine("    @PublishedApi internal var _${f.name}Block: ($builderPrefix${f.elementTypeName}BodyBuilder.() -> Unit)? = null")
+                    appendLine("    public fun ${f.name}(block: $builderPrefix${f.elementTypeName}BodyBuilder.() -> Unit) { _${f.name}Block = block }")
                 }
             }
         }

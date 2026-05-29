@@ -157,12 +157,12 @@ class TypesafeDslEmitterTest : FunSpec({
         // DslFileEmitter's nested-type recursion (Task 3) is reachable through
         // the production TypesafeDslEmitter entry point.
         dslText.contains("public class PetCreateNestedCall") shouldBe true
-        dslText.contains("public class PetBodyBuilder") shouldBe true
-        dslText.contains("public class OwnerBodyBuilder") shouldBe true
-        dslText.contains("public class TagBodyBuilder") shouldBe true
+        dslText.contains("public class PetCreateNestedPetBodyBuilder") shouldBe true
+        dslText.contains("public class PetCreateNestedOwnerBodyBuilder") shouldBe true
+        dslText.contains("public class PetCreateNestedTagBodyBuilder") shouldBe true
         // And the root builder must reference the nested builders so chained
         // configuration actually compiles for downstream users.
-        dslText.contains("OwnerBodyBuilder.() -> Unit") shouldBe true
-        dslText.contains("TagBodyBuilder.() -> Unit") shouldBe true
+        dslText.contains("PetCreateNestedOwnerBodyBuilder.() -> Unit") shouldBe true
+        dslText.contains("PetCreateNestedTagBodyBuilder.() -> Unit") shouldBe true
     }
 })

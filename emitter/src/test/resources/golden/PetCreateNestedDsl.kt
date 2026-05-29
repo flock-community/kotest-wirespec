@@ -16,16 +16,16 @@ public class PetCreateNestedCall internal constructor(scenario: ScenarioBuilder)
         apply { inner.body(value) }
     public fun body(arb: Arb<Pet>): PetCreateNestedCall =
         apply { inner.body(arb) }
-    public fun body(block: PetBodyBuilder.() -> Unit): PetCreateNestedCall = apply {
-        val builder = PetBodyBuilder().apply(block)
+    public fun body(block: PetCreateNestedPetBodyBuilder.() -> Unit): PetCreateNestedCall = apply {
+        val builder = PetCreateNestedPetBodyBuilder().apply(block)
         inner.body {
             builder.name?.let { registerPath("name") { it } }
             builder._ownerBlock?.let { block ->
-                val nested_owner = OwnerBodyBuilder().apply(block)
+                val nested_owner = PetCreateNestedOwnerBodyBuilder().apply(block)
                 nested_owner.email?.let { registerPath("owner", "email") { it } }
             }
             builder._tagsBlock?.let { block ->
-                val nested_tags = TagBodyBuilder().apply(block)
+                val nested_tags = PetCreateNestedTagBodyBuilder().apply(block)
                 nested_tags.label?.let { registerPath("tags", "*", "label") { it } }
             }
         }
@@ -42,18 +42,18 @@ public class PetCreateNestedCall internal constructor(scenario: ScenarioBuilder)
         apply { inner.collecting<R>(duration, block) }
 }
 @WirespecScenarioDsl
-public class PetBodyBuilder {
+public class PetCreateNestedPetBodyBuilder {
     public var name: Arb<String>? = null
-    @PublishedApi internal var _ownerBlock: (OwnerBodyBuilder.() -> Unit)? = null
-    public fun owner(block: OwnerBodyBuilder.() -> Unit) { _ownerBlock = block }
-    @PublishedApi internal var _tagsBlock: (TagBodyBuilder.() -> Unit)? = null
-    public fun tags(block: TagBodyBuilder.() -> Unit) { _tagsBlock = block }
+    @PublishedApi internal var _ownerBlock: (PetCreateNestedOwnerBodyBuilder.() -> Unit)? = null
+    public fun owner(block: PetCreateNestedOwnerBodyBuilder.() -> Unit) { _ownerBlock = block }
+    @PublishedApi internal var _tagsBlock: (PetCreateNestedTagBodyBuilder.() -> Unit)? = null
+    public fun tags(block: PetCreateNestedTagBodyBuilder.() -> Unit) { _tagsBlock = block }
 }
 @WirespecScenarioDsl
-public class OwnerBodyBuilder {
+public class PetCreateNestedOwnerBodyBuilder {
     public var email: Arb<String>? = null
 }
 @WirespecScenarioDsl
-public class TagBodyBuilder {
+public class PetCreateNestedTagBodyBuilder {
     public var label: Arb<String>? = null
 }

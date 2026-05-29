@@ -14,8 +14,8 @@ public class PetCreateBulkCall internal constructor(scenario: ScenarioBuilder) {
         apply { inner.body(value) }
     public fun body(arb: Arb<List<Pet>>): PetCreateBulkCall =
         apply { inner.body(arb) }
-    public fun body(block: PetBodyBuilder.() -> Unit): PetCreateBulkCall = apply {
-        val builder = PetBodyBuilder().apply(block)
+    public fun body(block: PetCreateBulkPetBodyBuilder.() -> Unit): PetCreateBulkCall = apply {
+        val builder = PetCreateBulkPetBodyBuilder().apply(block)
         inner.body {
             builder.name?.let { registerPath("*", "name") { it } }
         }
@@ -32,6 +32,6 @@ public class PetCreateBulkCall internal constructor(scenario: ScenarioBuilder) {
         apply { inner.collecting<R>(duration, block) }
 }
 @WirespecScenarioDsl
-public class PetBodyBuilder {
+public class PetCreateBulkPetBodyBuilder {
     public var name: Arb<String>? = null
 }

@@ -111,7 +111,8 @@ data class EndpointShape(
                 ?: emptyList()
             val modelImports = (
                 (refs + bodyFieldRefs).flatMap(::collectCustomNames) +
-                    collectNestedTypeNames(bodyFieldShapes)
+                    collectNestedTypeNames(bodyFieldShapes) +
+                    collectFieldTypeNames(bodyFieldShapes, types)
                 ).distinct()
 
             return EndpointShape(
@@ -139,6 +140,33 @@ data class EndpointShape(
                 is BodyFieldShape.Primitive -> emptyList()
                 is BodyFieldShape.NestedObject -> listOf(f.typeName) + collectNestedTypeNames(f.fields)
                 is BodyFieldShape.NestedList -> listOf(f.elementTypeName) + collectNestedTypeNames(f.fields)
+            }
+        }
+
+        /**
+         * Walks nested-builder type trees and collects the [Reference.Custom] names appearing
+         * on each nested type's own fields. This ensures the emitted DSL file imports model
+         * types referenced only by inlined nested builders (e.g. an enum field on a nested
+         * object that doesn't show up in the root body's direct fields).
+         */
+        private fun collectFieldTypeNames(
+            fields: List<BodyFieldShape>,
+            types: Map<String, Type>,
+        ): List<String> = fields.flatMap { f ->
+            when (f) {
+                is BodyFieldShape.Primitive -> emptyList()
+                is BodyFieldShape.NestedObject -> {
+                    val nestedFieldRefs = types[f.typeName]?.shape?.value
+                        ?.flatMap { collectCustomNames(it.reference) }
+                        ?: emptyList()
+                    nestedFieldRefs + collectFieldTypeNames(f.fields, types)
+                }
+                is BodyFieldShape.NestedList -> {
+                    val nestedFieldRefs = types[f.elementTypeName]?.shape?.value
+                        ?.flatMap { collectCustomNames(it.reference) }
+                        ?: emptyList()
+                    nestedFieldRefs + collectFieldTypeNames(f.fields, types)
+                }
             }
         }
 
