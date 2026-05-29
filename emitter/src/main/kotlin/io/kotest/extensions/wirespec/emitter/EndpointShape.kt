@@ -10,8 +10,14 @@ data class EndpointShape(
     val pathFields: List<NamedTypedField>,
     val queryFields: List<NamedTypedField>,
     val headerFields: List<NamedTypedField>,
+    /** Full Kotlin type of the body, e.g. `"Pet"` (Object) or `"List<Pet>"` (List). `null` when there is no body. */
     val bodyType: String?,
     val bodyKind: BodyKind,
+    /**
+     * Name of the body's element Type — `"Pet"` for both `Object` (body is `Pet`) and `List` (body is `List<Pet>`).
+     * `null` for `BodyKind.None`. **Prefer this over `bodyType` when constructing builder class names**, because
+     * `bodyType` is `"List<T>"` for list bodies and not a valid Kotlin identifier segment.
+     */
     val bodyElementType: String?,
     val bodyFields: List<NamedTypedField>,
     val modelImports: List<String>,
