@@ -5,6 +5,7 @@ import community.flock.wirespec.compiler.core.parse.ast.DefinitionIdentifier
 import community.flock.wirespec.compiler.core.parse.ast.Endpoint
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldContain
 
 class DslFileEmitterTest : FunSpec({
     val pkg = PackageName("com.example.api")
@@ -190,6 +191,7 @@ class DslFileEmitterTest : FunSpec({
         val emitted = DslFileEmitter.emit(endpoint, pkg, types = mapOf("Pet" to petType))
         emitted.file shouldBe "com/example/api/kotest/PetCreateBulkDsl.kt"
         emitted.result shouldBe readGolden("PetCreateBulkDsl.kt")
+        emitted.result shouldContain "registerPath(\"*\", \"name\")"
     }
 })
 
