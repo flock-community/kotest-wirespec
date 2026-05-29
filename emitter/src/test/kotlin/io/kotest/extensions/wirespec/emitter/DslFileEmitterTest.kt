@@ -151,6 +151,46 @@ class DslFileEmitterTest : FunSpec({
         emitted.file shouldBe "com/example/api/kotest/PetCreateDsl.kt"
         emitted.result shouldBe readGolden("PetCreateDsl.kt")
     }
+
+    test("body-only endpoint with Iterable<Custom> body (PetCreateBulk) — body{} emits with wildcard prefix") {
+        val stringRef = community.flock.wirespec.compiler.core.parse.ast.Reference.Primitive(
+            community.flock.wirespec.compiler.core.parse.ast.Reference.Primitive.Type.String(null), false
+        )
+        val petType = community.flock.wirespec.compiler.core.parse.ast.Type(
+            comment = null,
+            annotations = emptyList(),
+            identifier = community.flock.wirespec.compiler.core.parse.ast.DefinitionIdentifier("Pet"),
+            shape = community.flock.wirespec.compiler.core.parse.ast.Type.Shape(
+                listOf(community.flock.wirespec.compiler.core.parse.ast.Field(emptyList(), community.flock.wirespec.compiler.core.parse.ast.FieldIdentifier("name"), stringRef)),
+            ),
+            extends = emptyList(),
+        )
+        val endpoint = Endpoint(
+            comment = null,
+            annotations = emptyList(),
+            identifier = community.flock.wirespec.compiler.core.parse.ast.DefinitionIdentifier("PetCreateBulk"),
+            method = Endpoint.Method.POST,
+            path = listOf(Endpoint.Segment.Literal("api"), Endpoint.Segment.Literal("pets")),
+            queries = emptyList(),
+            headers = emptyList(),
+            requests = listOf(
+                Endpoint.Request(
+                    content = Endpoint.Content(
+                        "application/json",
+                        community.flock.wirespec.compiler.core.parse.ast.Reference.Iterable(
+                            community.flock.wirespec.compiler.core.parse.ast.Reference.Custom("Pet", false),
+                            isNullable = false,
+                        ),
+                    ),
+                ),
+            ),
+            responses = emptyList(),
+        )
+
+        val emitted = DslFileEmitter.emit(endpoint, pkg, types = mapOf("Pet" to petType))
+        emitted.file shouldBe "com/example/api/kotest/PetCreateBulkDsl.kt"
+        emitted.result shouldBe readGolden("PetCreateBulkDsl.kt")
+    }
 })
 
 private fun readGolden(name: String): String =

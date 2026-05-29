@@ -38,7 +38,9 @@ object DslFileEmitter {
 
             raw(renderCallClass(shape))
             if (shape.bodyType != null && shape.bodyFields.isNotEmpty()) {
-                raw(renderBodyBuilder(shape.bodyType, shape.bodyFields))
+                val element = shape.bodyElementType
+                    ?: error("bodyFields present but no bodyElementType for ${shape.name}")
+                raw(renderBodyBuilder(element, shape.bodyFields))
             }
         }
 
@@ -104,20 +106,23 @@ object DslFileEmitter {
         appendLine("    public fun body(arb: Arb<$bodyType>): $call =")
         appendLine("        apply { inner.body(arb) }")
         if (shape.bodyFields.isNotEmpty()) {
-            appendLine("    public fun body(block: ${bodyType}BodyBuilder.() -> Unit): $call = apply {")
-            appendLine("        val builder = ${bodyType}BodyBuilder().apply(block)")
+            val element = shape.bodyElementType ?: error("bodyFields present but no bodyElementType")
+            val builderName = "${element}BodyBuilder"
+            val pathPrefix = if (shape.bodyKind == EndpointShape.BodyKind.List) "\"*\", " else ""
+            appendLine("    public fun body(block: $builderName.() -> Unit): $call = apply {")
+            appendLine("        val builder = $builderName().apply(block)")
             appendLine("        inner.body {")
             shape.bodyFields.forEach { f ->
-                appendLine("            builder.${f.name}?.let { registerPath(\"${f.name}\") { it } }")
+                appendLine("            builder.${f.name}?.let { registerPath($pathPrefix\"${f.name}\") { it } }")
             }
             appendLine("        }")
             appendLine("    }")
         }
     }
 
-    private fun renderBodyBuilder(bodyType: String, fields: List<EndpointShape.NamedTypedField>): String = buildString {
+    private fun renderBodyBuilder(elementType: String, fields: List<EndpointShape.NamedTypedField>): String = buildString {
         appendLine("@WirespecScenarioDsl")
-        appendLine("public class ${bodyType}BodyBuilder {")
+        appendLine("public class ${elementType}BodyBuilder {")
         fields.forEach { f ->
             appendLine("    public var ${f.name}: Arb<${f.kotlinType}>? = null")
         }
