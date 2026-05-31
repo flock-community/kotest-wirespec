@@ -16,6 +16,8 @@ import io.kotest.extensions.wirespec.validation.ChannelValidator
 import io.kotest.extensions.wirespec.validation.ContractValidator
 import io.kotest.extensions.wirespec.validation.EndpointReflection
 import io.kotest.property.RandomSource
+import io.kotest.property.arbitrary.int
+import io.kotest.property.arbitrary.next
 import kotlinx.coroutines.runBlocking
 
 /**
@@ -214,6 +216,21 @@ internal class ScenarioRunner(
         when {
             call.bodyInput != null -> {
                 args["body"] = resolve(call.bodyInput!!)
+            }
+            reflection.hasBody && reflection.bodyElementClass != null -> {
+                val (generator, rootPath) = call.bodyOverrides?.let { overrides ->
+                    kotestWirespecKotlinGenerator(seed = randomSource.random.nextLong()) {
+                        overrides()
+                    } to emptyList<String>()
+                } ?: (arbReceiver.generator to listOf("#$index"))
+                val sizeArb = call.bodyListSize ?: io.kotest.property.Arb.int(1..3)
+                val size = sizeArb.next(io.kotest.property.RandomSource.seeded(
+                    randomSource.random.nextLong() xor ("#$index/size".hashCode().toLong())
+                ))
+                val elementGen = arbReceiver.generatorFor(reflection.bodyElementClass!!)
+                args["body"] = (0 until size).map { i ->
+                    elementGen.generate(generator, rootPath + "$i")
+                }
             }
             reflection.hasBody -> {
                 val bodyType = reflection.requestConstructor.parameters
