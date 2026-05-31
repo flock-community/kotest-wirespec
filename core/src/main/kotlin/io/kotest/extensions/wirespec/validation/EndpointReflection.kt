@@ -101,6 +101,7 @@ internal class EndpointReflection private constructor(
             val headersFieldNames = headersClass.declaredFields.map { it.name }
             val hasBody = "body" in paramNames
 
+            @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
             val bodyElementClass: Class<*>? = if (hasBody) {
                 val bodyParam = requestConstructor.parameters.first { it.name == "body" }
                 val erased = bodyParam.type

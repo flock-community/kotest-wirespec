@@ -51,6 +51,28 @@ private object NoBodyEndpoint : Wirespec.Endpoint {
     fun fromResponse(serialization: Wirespec.Serialization, response: Wirespec.RawResponse): Response<*> = Response200()
 }
 
+private object ScalarBodyEndpoint : Wirespec.Endpoint {
+    object Handler
+    data class Path(val unused: Unit = Unit) : Wirespec.Path
+    data class Queries(val unused: Unit = Unit) : Wirespec.Queries
+    data class RequestHeaders(val unused: Unit = Unit) : Wirespec.Request.Headers
+
+    class Request(override val body: String) : Wirespec.Request<String> {
+        override val path: Wirespec.Path = Path()
+        override val method: Wirespec.Method = Wirespec.Method.POST
+        override val queries: Wirespec.Queries = Queries()
+        override val headers: Wirespec.Request.Headers = RequestHeaders()
+    }
+
+    abstract class Response<T : Any>(override val status: Int) : Wirespec.Response<T> {
+        override val headers: Wirespec.Response.Headers = object : Wirespec.Response.Headers {}
+    }
+    class Response201 : Response<Unit>(201) { override val body: Unit = Unit }
+
+    @JvmStatic
+    fun fromResponse(serialization: Wirespec.Serialization, response: Wirespec.RawResponse): Response<*> = Response201()
+}
+
 class EndpointReflectionTest : FunSpec({
 
     test("List<String> body parameter — bodyElementClass is String") {
@@ -60,6 +82,11 @@ class EndpointReflectionTest : FunSpec({
 
     test("no body — bodyElementClass is null") {
         val reflection = EndpointReflection.of(NoBodyEndpoint)
+        reflection.bodyElementClass.shouldBeNull()
+    }
+
+    test("scalar body parameter (String) — bodyElementClass is null") {
+        val reflection = EndpointReflection.of(ScalarBodyEndpoint)
         reflection.bodyElementClass.shouldBeNull()
     }
 })
