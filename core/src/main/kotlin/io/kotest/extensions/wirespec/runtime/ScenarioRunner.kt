@@ -225,9 +225,9 @@ internal class ScenarioRunner(
                 } ?: (arbReceiver.generator to listOf("#$index"))
                 val sizeArb = call.bodyListSize ?: io.kotest.property.Arb.int(1..3)
                 val size = sizeArb.next(io.kotest.property.RandomSource.seeded(
-                    randomSource.random.nextLong() xor ("#$index/size".hashCode().toLong())
+                    randomSource.seed xor "#$index/size".hashCode().toLong()
                 ))
-                val elementGen = arbReceiver.generatorFor(reflection.bodyElementClass!!)
+                val elementGen = arbReceiver.generatorFor(reflection.bodyElementClass)
                 args["body"] = (0 until size).map { i ->
                     elementGen.generate(generator, rootPath + "$i")
                 }
