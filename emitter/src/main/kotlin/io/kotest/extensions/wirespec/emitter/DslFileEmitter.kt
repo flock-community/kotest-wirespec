@@ -123,7 +123,7 @@ object DslFileEmitter {
             appendLine("    public fun $signature: $call = apply {")
             appendLine("        val builder = $builderName().apply(block)")
             if (isList) {
-                appendLine("        inner.bodyListSize(io.kotest.property.arbitrary.int(count))")
+                appendLine("        inner.bodyListSize(io.kotest.property.Arb.int(count))")
             }
             appendLine("        inner.body {")
             renderFieldRegistrations(this, "builder", shape.bodyFieldShapes, rootPrefix, indent = "            ", builderPrefix = shape.name)
