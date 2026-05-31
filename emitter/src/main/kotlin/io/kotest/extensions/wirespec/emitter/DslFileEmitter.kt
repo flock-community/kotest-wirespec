@@ -114,8 +114,17 @@ object DslFileEmitter {
             val element = shape.bodyElementType ?: error("bodyFieldShapes present but no bodyElementType")
             val builderName = "${shape.name}${element}BodyBuilder"
             val rootPrefix = if (shape.bodyKind == EndpointShape.BodyKind.List) listOf("\"*\"") else emptyList()
-            appendLine("    public fun body(block: $builderName.() -> Unit): $call = apply {")
+            val isList = shape.bodyKind == EndpointShape.BodyKind.List
+            val signature = if (isList) {
+                "body(count: IntRange = 1..3, block: $builderName.() -> Unit)"
+            } else {
+                "body(block: $builderName.() -> Unit)"
+            }
+            appendLine("    public fun $signature: $call = apply {")
             appendLine("        val builder = $builderName().apply(block)")
+            if (isList) {
+                appendLine("        inner.bodyListSize(io.kotest.property.arbitrary.int(count))")
+            }
             appendLine("        inner.body {")
             renderFieldRegistrations(this, "builder", shape.bodyFieldShapes, rootPrefix, indent = "            ", builderPrefix = shape.name)
             appendLine("        }")

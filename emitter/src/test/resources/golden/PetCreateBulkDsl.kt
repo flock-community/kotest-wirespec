@@ -14,8 +14,9 @@ public class PetCreateBulkCall internal constructor(scenario: ScenarioBuilder) {
         apply { inner.body(value) }
     public fun body(arb: Arb<List<Pet>>): PetCreateBulkCall =
         apply { inner.body(arb) }
-    public fun body(block: PetCreateBulkPetBodyBuilder.() -> Unit): PetCreateBulkCall = apply {
+    public fun body(count: IntRange = 1..3, block: PetCreateBulkPetBodyBuilder.() -> Unit): PetCreateBulkCall = apply {
         val builder = PetCreateBulkPetBodyBuilder().apply(block)
+        inner.bodyListSize(io.kotest.property.arbitrary.int(count))
         inner.body {
             builder.name?.let { registerPath("*", "name") { it } }
         }

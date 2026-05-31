@@ -192,6 +192,7 @@ class DslFileEmitterTest : FunSpec({
         emitted.file shouldBe "com/example/api/kotest/PetCreateBulkDsl.kt"
         emitted.result shouldBe readGolden("PetCreateBulkDsl.kt")
         emitted.result shouldContain "registerPath(\"*\", \"name\")"
+        emitted.result shouldContain "body(count: IntRange = 1..3"
     }
 
     test("nested object and nested list body fields — emit per-field nested builders") {
