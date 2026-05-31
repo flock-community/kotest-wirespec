@@ -24,6 +24,8 @@ class EndpointCallBuilder<BodyT : Any, Req : Wirespec.Request<BodyT>, Resp : Wir
 
     internal var bodyOverrides: (KotestWirespecGeneratorBuilder.() -> Unit)? = null
 
+    internal var bodyListSize: Arb<Int>? = null
+
     internal var expectedStatuses: Set<Int>? = null
 
     internal var customAssertion: ((Any) -> Unit)? = null
@@ -50,6 +52,10 @@ class EndpointCallBuilder<BodyT : Any, Req : Wirespec.Request<BodyT>, Resp : Wir
     fun body(overrides: KotestWirespecGeneratorBuilder.() -> Unit): EndpointCallBuilder<BodyT, Req, Resp> = apply {
         bodyInput = null
         bodyOverrides = overrides
+    }
+
+    fun bodyListSize(size: Arb<Int>): EndpointCallBuilder<BodyT, Req, Resp> = apply {
+        bodyListSize = size
     }
 
     inline fun <reified P : Wirespec.Path> path(value: P): EndpointCallBuilder<BodyT, Req, Resp> = apply {
