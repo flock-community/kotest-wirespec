@@ -21,6 +21,7 @@ internal class EndpointReflection private constructor(
     val queriesFieldNames: List<String>,
     val headersFieldNames: List<String>,
     val hasBody: Boolean,
+    val bodyElementClass: Class<*>?,
 ) {
 
     fun responseClassForStatus(status: Int): Class<*>? = responseVariantsByStatus[status]
@@ -100,6 +101,19 @@ internal class EndpointReflection private constructor(
             val headersFieldNames = headersClass.declaredFields.map { it.name }
             val hasBody = "body" in paramNames
 
+            val bodyElementClass: Class<*>? = if (hasBody) {
+                val bodyParam = requestConstructor.parameters.first { it.name == "body" }
+                val erased = bodyParam.type
+                if (java.util.List::class.java.isAssignableFrom(erased)) {
+                    val parameterized = bodyParam.parameterizedType as? java.lang.reflect.ParameterizedType
+                    parameterized?.actualTypeArguments?.firstOrNull() as? Class<*>
+                } else {
+                    null
+                }
+            } else {
+                null
+            }
+
             return EndpointReflection(
                 endpointName = cls.simpleName ?: cls.java.name,
                 pathClass = pathClass,
@@ -114,6 +128,7 @@ internal class EndpointReflection private constructor(
                 queriesFieldNames = queriesFieldNames,
                 headersFieldNames = headersFieldNames,
                 hasBody = hasBody,
+                bodyElementClass = bodyElementClass,
             )
         }
     }
