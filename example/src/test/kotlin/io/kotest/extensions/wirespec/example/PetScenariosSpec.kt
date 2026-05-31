@@ -4,12 +4,15 @@ import io.kotest.core.extensions.ApplyExtension
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.extensions.spring.SpringRootTestExtension
 import io.kotest.extensions.wirespec.example.generated.endpoint.CreatePet
+import io.kotest.extensions.wirespec.example.generated.endpoint.CreatePetsBulk
 import io.kotest.extensions.wirespec.example.generated.endpoint.DeletePet
 import io.kotest.extensions.wirespec.example.generated.endpoint.GetPet
 import io.kotest.extensions.wirespec.example.generated.endpoint.ListPets
 import io.kotest.extensions.wirespec.example.generated.endpoint.UpdatePet
 import io.kotest.extensions.wirespec.example.generated.kotest.wirespec
 import io.kotest.extensions.wirespec.scenario
+import io.kotest.matchers.ints.shouldBeGreaterThanOrEqual
+import io.kotest.matchers.ints.shouldBeLessThanOrEqual
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.property.Arb
@@ -61,6 +64,33 @@ class PetScenariosSpec : FunSpec({
                 .query(limit = 10, offset = 0)
                 .expecting<ListPets.Response200> { resp ->
                     resp.body.content.size shouldBe resp.body.total.coerceAtMost(10)
+                }
+        }
+    }
+
+    test("createPetsBulk — body(count = 2..2) { … } sends a 2-element list and the response shows total=2") {
+        scenario(iterations = 1) {
+            wirespec.createPetsBulk
+                .body(count = 2..2) {
+                    name = Arb.constant("rex")
+                    species = Arb.constant("dog")
+                }
+                .expecting<CreatePetsBulk.Response201> { response ->
+                    response.body.total shouldBe 2
+                }
+        }
+    }
+
+    test("createPetsBulk — default count (1..3) generates between 1 and 3 elements") {
+        scenario(iterations = 5) {
+            wirespec.createPetsBulk
+                .body {
+                    name = Arb.constant("polly")
+                    species = Arb.constant("parrot")
+                }
+                .expecting<CreatePetsBulk.Response201> { response ->
+                    response.body.total shouldBeGreaterThanOrEqual 1
+                    response.body.total shouldBeLessThanOrEqual 3
                 }
         }
     }

@@ -104,5 +104,29 @@ class PetController(
         return PetPage(content = content.map { it.toResponse() }, total = total)
     }
 
+    @PostMapping("/bulk")
+    @ApiResponses(
+        ApiResponse(responseCode = "201", content = [Content(schema = Schema(implementation = PetPage::class))]),
+        ApiResponse(responseCode = "400", content = [Content(schema = Schema(implementation = ErrorResponse::class))]),
+    )
+    suspend fun createPetsBulk(@RequestBody requests: List<CreatePetRequest>): ResponseEntity<Any> {
+        if (requests.isEmpty()) {
+            return ResponseEntity.badRequest().body(
+                ErrorResponse("validation", "at least one pet required"),
+            )
+        }
+        val created = requests.map { req ->
+            repository.create(req.name.ifBlank { "anon" }, req.species.ifBlank { "unknown" })
+                .also {
+                    publisher.publishPetCreated(
+                        PetCreatedEvent(id = it.id, name = it.name, species = it.species),
+                    )
+                }
+        }
+        return ResponseEntity.status(HttpStatus.CREATED).body(
+            PetPage(content = created.map { it.toResponse() }, total = created.size),
+        )
+    }
+
     private fun Pet.toResponse() = PetResponse(id = id, name = name, species = species, bornAt = bornAt)
 }
