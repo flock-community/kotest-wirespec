@@ -34,6 +34,11 @@ object DslFileEmitter {
             if (shape.bodyType != null) {
                 import("io.kotest.property", "Arb")
             }
+            if (shape.bodyKind == EndpointShape.BodyKind.List) {
+                // Arb.int is an extension on Arb.Companion in io.kotest.property.arbitrary
+                // and must be imported explicitly when referenced as `Arb.int(count)`.
+                import("io.kotest.property.arbitrary", "int")
+            }
             shape.modelImports.forEach { import(modelPkg, it) }
 
             raw(renderCallClass(shape))
@@ -123,7 +128,7 @@ object DslFileEmitter {
             appendLine("    public fun $signature: $call = apply {")
             appendLine("        val builder = $builderName().apply(block)")
             if (isList) {
-                appendLine("        inner.bodyListSize(io.kotest.property.Arb.int(count))")
+                appendLine("        inner.bodyListSize(Arb.int(count))")
             }
             appendLine("        inner.body {")
             renderFieldRegistrations(this, "builder", shape.bodyFieldShapes, rootPrefix, indent = "            ", builderPrefix = shape.name)
