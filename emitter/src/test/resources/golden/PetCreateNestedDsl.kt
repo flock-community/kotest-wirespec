@@ -6,6 +6,8 @@ import io.kotest.extensions.wirespec.dsl.EndpointCallBuilder.StreamingMode
 import kotlin.time.Duration
 import com.example.api.endpoint.PetCreateNested
 import io.kotest.property.Arb
+import io.kotest.extensions.wirespec.dsl.asArb
+import io.kotest.property.Gen
 import com.example.api.model.Pet
 import com.example.api.model.Owner
 import com.example.api.model.Tag
@@ -19,14 +21,14 @@ public class PetCreateNestedCall internal constructor(scenario: ScenarioBuilder)
     public fun body(block: PetCreateNestedPetBodyBuilder.() -> Unit): PetCreateNestedCall = apply {
         val builder = PetCreateNestedPetBodyBuilder().apply(block)
         inner.body {
-            builder.name?.let { registerPath("name") { it } }
+            builder.name?.let { registerPath("name") { it.asArb() } }
             builder._ownerBlock?.let { block ->
                 val nested_owner = PetCreateNestedOwnerBodyBuilder().apply(block)
-                nested_owner.email?.let { registerPath("owner", "email") { it } }
+                nested_owner.email?.let { registerPath("owner", "email") { it.asArb() } }
             }
             builder._tagsBlock?.let { block ->
                 val nested_tags = PetCreateNestedTagBodyBuilder().apply(block)
-                nested_tags.label?.let { registerPath("tags", "*", "label") { it } }
+                nested_tags.label?.let { registerPath("tags", "*", "label") { it.asArb() } }
             }
         }
     }
@@ -43,7 +45,7 @@ public class PetCreateNestedCall internal constructor(scenario: ScenarioBuilder)
 }
 @WirespecScenarioDsl
 public class PetCreateNestedPetBodyBuilder {
-    public var name: Arb<String>? = null
+    public var name: Gen<String>? = null
     @PublishedApi internal var _ownerBlock: (PetCreateNestedOwnerBodyBuilder.() -> Unit)? = null
     public fun owner(block: PetCreateNestedOwnerBodyBuilder.() -> Unit) { _ownerBlock = block }
     @PublishedApi internal var _tagsBlock: (PetCreateNestedTagBodyBuilder.() -> Unit)? = null
@@ -51,9 +53,9 @@ public class PetCreateNestedPetBodyBuilder {
 }
 @WirespecScenarioDsl
 public class PetCreateNestedOwnerBodyBuilder {
-    public var email: Arb<String>? = null
+    public var email: Gen<String>? = null
 }
 @WirespecScenarioDsl
 public class PetCreateNestedTagBodyBuilder {
-    public var label: Arb<String>? = null
+    public var label: Gen<String>? = null
 }

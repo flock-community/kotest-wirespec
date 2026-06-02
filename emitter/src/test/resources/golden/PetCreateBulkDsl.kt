@@ -6,6 +6,8 @@ import io.kotest.extensions.wirespec.dsl.EndpointCallBuilder.StreamingMode
 import kotlin.time.Duration
 import com.example.api.endpoint.PetCreateBulk
 import io.kotest.property.Arb
+import io.kotest.extensions.wirespec.dsl.asArb
+import io.kotest.property.Gen
 import io.kotest.property.arbitrary.int
 import com.example.api.model.Pet
 @WirespecScenarioDsl
@@ -19,7 +21,7 @@ public class PetCreateBulkCall internal constructor(scenario: ScenarioBuilder) {
         val builder = PetCreateBulkPetBodyBuilder().apply(block)
         inner.bodyListSize(Arb.int(count))
         inner.body {
-            builder.name?.let { registerPath("*", "name") { it } }
+            builder.name?.let { registerPath("*", "name") { it.asArb() } }
         }
     }
     public inline fun <reified R : PetCreateBulk.Response<*>> expecting(): PetCreateBulkCall =
@@ -35,5 +37,5 @@ public class PetCreateBulkCall internal constructor(scenario: ScenarioBuilder) {
 }
 @WirespecScenarioDsl
 public class PetCreateBulkPetBodyBuilder {
-    public var name: Arb<String>? = null
+    public var name: Gen<String>? = null
 }

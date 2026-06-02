@@ -34,6 +34,10 @@ object DslFileEmitter {
             if (shape.bodyType != null) {
                 import("io.kotest.property", "Arb")
             }
+            if (shape.bodyType != null && hasPrimitiveField(shape.bodyFieldShapes)) {
+                import("io.kotest.extensions.wirespec.dsl", "asArb")
+                import("io.kotest.property", "Gen")
+            }
             if (shape.bodyKind == EndpointShape.BodyKind.List) {
                 // Arb.int is an extension on Arb.Companion in io.kotest.property.arbitrary
                 // and must be imported explicitly when referenced as `Arb.int(count)`.
@@ -150,7 +154,7 @@ object DslFileEmitter {
             val pathArgs = (pathPrefix + nameSegment).joinToString(", ")
             when (f) {
                 is EndpointShape.BodyFieldShape.Primitive -> {
-                    out.appendLine("$indent$receiver.${f.name}?.let { registerPath($pathArgs) { it } }")
+                    out.appendLine("$indent$receiver.${f.name}?.let { registerPath($pathArgs) { it.asArb() } }")
                 }
                 is EndpointShape.BodyFieldShape.NestedObject -> {
                     val nestedBuilder = "$builderPrefix${f.typeName}BodyBuilder"
@@ -182,7 +186,7 @@ object DslFileEmitter {
         fields.forEach { f ->
             when (f) {
                 is EndpointShape.BodyFieldShape.Primitive -> {
-                    appendLine("    public var ${f.name}: Arb<${f.kotlinType}>? = null")
+                    appendLine("    public var ${f.name}: Gen<${f.kotlinType}>? = null")
                 }
                 is EndpointShape.BodyFieldShape.NestedObject -> {
                     appendLine("    @PublishedApi internal var _${f.name}Block: ($builderPrefix${f.typeName}BodyBuilder.() -> Unit)? = null")
@@ -196,6 +200,15 @@ object DslFileEmitter {
         }
         append("}")
     }
+
+    private fun hasPrimitiveField(fields: List<EndpointShape.BodyFieldShape>): Boolean =
+        fields.any { f ->
+            when (f) {
+                is EndpointShape.BodyFieldShape.Primitive -> true
+                is EndpointShape.BodyFieldShape.NestedObject -> hasPrimitiveField(f.fields)
+                is EndpointShape.BodyFieldShape.NestedList -> hasPrimitiveField(f.fields)
+            }
+        }
 
     private fun collectNestedBuilders(
         fields: List<EndpointShape.BodyFieldShape>,

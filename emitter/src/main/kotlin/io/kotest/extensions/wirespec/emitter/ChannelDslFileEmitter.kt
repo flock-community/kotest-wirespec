@@ -29,6 +29,10 @@ object ChannelDslFileEmitter {
             import("io.kotest.extensions.wirespec.dsl", "ScenarioBuilder")
             import("io.kotest.extensions.wirespec.dsl", "WirespecScenarioDsl")
             import("io.kotest.property", "Arb")
+            if (shape.payloadFields.isNotEmpty()) {
+                import("io.kotest.extensions.wirespec.dsl", "asArb")
+                import("io.kotest.property", "Gen")
+            }
             import("kotlin.time", "Duration")
             import(channelPkg, shape.name)
             shape.modelImports.forEach { import(modelPkg, it) }
@@ -65,7 +69,7 @@ object ChannelDslFileEmitter {
             appendLine("        val builder = ${payload}PayloadBuilder().apply(block)")
             appendLine("        inner.send {")
             shape.payloadFields.forEach { f ->
-                appendLine("            builder.${f.name}?.let { registerPath(\"${f.name}\") { it } }")
+                appendLine("            builder.${f.name}?.let { registerPath(\"${f.name}\") { it.asArb() } }")
             }
             appendLine("        }")
             appendLine("    }")
@@ -86,7 +90,7 @@ object ChannelDslFileEmitter {
         appendLine("@WirespecScenarioDsl")
         appendLine("public class ${payloadType}PayloadBuilder {")
         fields.forEach { f ->
-            appendLine("    public var ${f.name}: Arb<${f.kotlinType}>? = null")
+            appendLine("    public var ${f.name}: Gen<${f.kotlinType}>? = null")
         }
         append("}")
     }
