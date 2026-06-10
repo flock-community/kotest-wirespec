@@ -1,6 +1,5 @@
 package com.example.api.kotest
-import io.kotest.extensions.wirespec.dsl.ResultRef
-import io.kotest.extensions.wirespec.dsl.ScenarioBuilder
+import io.kotest.extensions.wirespec.dsl.channelCall
 import io.kotest.extensions.wirespec.dsl.WirespecScenarioDsl
 import io.kotest.property.Arb
 import io.kotest.extensions.wirespec.dsl.asArb
@@ -9,36 +8,34 @@ import kotlin.time.Duration
 import com.example.api.channel.PetCreatedChannel
 import com.example.api.model.PetCreated
 @WirespecScenarioDsl
-public class PetCreatedChannelCall internal constructor(scenario: ScenarioBuilder) {
-    @PublishedApi internal val inner = scenario.channel<PetCreated>(PetCreatedChannel::class)
+public class PetCreatedChannelCall internal constructor() {
+    @PublishedApi internal val inner = channelCall<PetCreated>(PetCreatedChannel::class)
     public fun topic(value: String): PetCreatedChannelCall =
         apply { inner.topic(value) }
-    public fun topic(ref: ResultRef<String>): PetCreatedChannelCall =
-        apply { inner.topic { ref.require() } }
     public fun key(value: String): PetCreatedChannelCall =
         apply { inner.key(value) }
-    public fun send(): PetCreatedChannelCall =
-        apply { inner.send() }
-    public fun send(value: PetCreated): PetCreatedChannelCall =
-        apply { inner.send(value) }
-    public fun send(arb: Arb<PetCreated>): PetCreatedChannelCall =
-        apply { inner.send(arb) }
-    public fun send(block: PetCreatedPayloadBuilder.() -> Unit): PetCreatedChannelCall = apply {
+    public suspend fun send(): PetCreated =
+        inner.send()
+    public suspend fun send(value: PetCreated): PetCreated =
+        inner.send(value)
+    public suspend fun send(arb: Arb<PetCreated>): PetCreated =
+        inner.send(arb)
+    public suspend fun send(block: PetCreatedPayloadBuilder.() -> Unit): PetCreated {
         val builder = PetCreatedPayloadBuilder().apply(block)
-        inner.send {
+        return inner.send {
             builder.id?.let { registerPath("id") { it.asArb() } }
             builder.name?.let { registerPath("name") { it.asArb() } }
         }
     }
-    public fun expecting(): PetCreatedChannelCall =
-        apply { inner.expecting() }
-    public fun expecting(block: (PetCreated) -> Unit): PetCreatedChannelCall =
-        apply { inner.expecting(block) }
-    public fun collecting(count: Int, block: (List<PetCreated>) -> Unit): PetCreatedChannelCall =
-        apply { inner.collecting(count, block) }
-    public fun collecting(duration: Duration, block: (List<PetCreated>) -> Unit): PetCreatedChannelCall =
-        apply { inner.collecting(duration, block) }
-    public fun <T> returning(projection: (PetCreated) -> T): ResultRef<T> =
+    public suspend fun expecting(): PetCreated =
+        inner.expecting()
+    public suspend fun expecting(block: (PetCreated) -> Unit): PetCreated =
+        inner.expecting(block)
+    public suspend fun collecting(count: Int, block: (List<PetCreated>) -> Unit): List<PetCreated> =
+        inner.collecting(count, block)
+    public suspend fun collecting(duration: Duration, block: (List<PetCreated>) -> Unit): List<PetCreated> =
+        inner.collecting(duration, block)
+    public suspend fun <T> returning(projection: (PetCreated) -> T): T =
         inner.returning(projection)
 }
 @WirespecScenarioDsl

@@ -25,8 +25,7 @@ object ChannelDslFileEmitter {
         val irFile = file("${shape.name}Dsl") {
             `package`(kotestPkg)
 
-            import("io.kotest.extensions.wirespec.dsl", "ResultRef")
-            import("io.kotest.extensions.wirespec.dsl", "ScenarioBuilder")
+            import("io.kotest.extensions.wirespec.dsl", "channelCall")
             import("io.kotest.extensions.wirespec.dsl", "WirespecScenarioDsl")
             import("io.kotest.property", "Arb")
             if (shape.payloadFields.isNotEmpty()) {
@@ -50,39 +49,37 @@ object ChannelDslFileEmitter {
         val call = "${shape.name}Call"
         val payload = shape.payloadType
         appendLine("@WirespecScenarioDsl")
-        appendLine("public class $call internal constructor(scenario: ScenarioBuilder) {")
-        appendLine("    @PublishedApi internal val inner = scenario.channel<$payload>(${shape.name}::class)")
+        appendLine("public class $call internal constructor() {")
+        appendLine("    @PublishedApi internal val inner = channelCall<$payload>(${shape.name}::class)")
         appendLine("    public fun topic(value: String): $call =")
         appendLine("        apply { inner.topic(value) }")
-        appendLine("    public fun topic(ref: ResultRef<String>): $call =")
-        appendLine("        apply { inner.topic { ref.require() } }")
         appendLine("    public fun key(value: String): $call =")
         appendLine("        apply { inner.key(value) }")
-        appendLine("    public fun send(): $call =")
-        appendLine("        apply { inner.send() }")
-        appendLine("    public fun send(value: $payload): $call =")
-        appendLine("        apply { inner.send(value) }")
-        appendLine("    public fun send(arb: Arb<$payload>): $call =")
-        appendLine("        apply { inner.send(arb) }")
+        appendLine("    public suspend fun send(): $payload =")
+        appendLine("        inner.send()")
+        appendLine("    public suspend fun send(value: $payload): $payload =")
+        appendLine("        inner.send(value)")
+        appendLine("    public suspend fun send(arb: Arb<$payload>): $payload =")
+        appendLine("        inner.send(arb)")
         if (shape.payloadFields.isNotEmpty()) {
-            appendLine("    public fun send(block: ${payload}PayloadBuilder.() -> Unit): $call = apply {")
+            appendLine("    public suspend fun send(block: ${payload}PayloadBuilder.() -> Unit): $payload {")
             appendLine("        val builder = ${payload}PayloadBuilder().apply(block)")
-            appendLine("        inner.send {")
+            appendLine("        return inner.send {")
             shape.payloadFields.forEach { f ->
                 appendLine("            builder.${f.name}?.let { registerPath(\"${f.name}\") { it.asArb() } }")
             }
             appendLine("        }")
             appendLine("    }")
         }
-        appendLine("    public fun expecting(): $call =")
-        appendLine("        apply { inner.expecting() }")
-        appendLine("    public fun expecting(block: ($payload) -> Unit): $call =")
-        appendLine("        apply { inner.expecting(block) }")
-        appendLine("    public fun collecting(count: Int, block: (List<$payload>) -> Unit): $call =")
-        appendLine("        apply { inner.collecting(count, block) }")
-        appendLine("    public fun collecting(duration: Duration, block: (List<$payload>) -> Unit): $call =")
-        appendLine("        apply { inner.collecting(duration, block) }")
-        appendLine("    public fun <T> returning(projection: ($payload) -> T): ResultRef<T> =")
+        appendLine("    public suspend fun expecting(): $payload =")
+        appendLine("        inner.expecting()")
+        appendLine("    public suspend fun expecting(block: ($payload) -> Unit): $payload =")
+        appendLine("        inner.expecting(block)")
+        appendLine("    public suspend fun collecting(count: Int, block: (List<$payload>) -> Unit): List<$payload> =")
+        appendLine("        inner.collecting(count, block)")
+        appendLine("    public suspend fun collecting(duration: Duration, block: (List<$payload>) -> Unit): List<$payload> =")
+        appendLine("        inner.collecting(duration, block)")
+        appendLine("    public suspend fun <T> returning(projection: ($payload) -> T): T =")
         append("        inner.returning(projection)\n}")
     }
 
