@@ -1,7 +1,7 @@
 package io.kotest.extensions.wirespec.context
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import community.flock.wirespec.integration.jackson.kotlin.WirespecSerialization
+import community.flock.wirespec.integration.jackson.v2.kotlin.WirespecSerialization
 import community.flock.wirespec.kotlin.Wirespec
 import io.kotest.core.spec.Spec
 import io.kotest.extensions.wirespec.WirespecTestContext

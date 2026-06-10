@@ -93,6 +93,29 @@ class TypesafeDslEmitterTest : FunSpec({
         emitted.none { it.file == "com/example/api/kotest/WirespecCatalog.kt" } shouldBe true
     }
 
+    test("kebab-case file basename is sanitized into a valid catalog identifier") {
+        val endpoint = Endpoint(
+            comment = null,
+            annotations = emptyList(),
+            identifier = DefinitionIdentifier("PutExpectedArgs"),
+            method = Endpoint.Method.PUT,
+            path = listOf(Endpoint.Segment.Literal("tool-calls")),
+            queries = emptyList(),
+            headers = emptyList(),
+            requests = listOf(Endpoint.Request(content = null)),
+            responses = emptyList(),
+        )
+        val module = Module(FileUri("mem://tool-calls.ws"), nonEmptyListOf(endpoint))
+        val ast = Root(nonEmptyListOf(module))
+
+        val emitter = TypesafeDslEmitter(PackageName("com.example.api"), EmitShared())
+        val emitted = emitter.emit(ast, noLogger).toList()
+
+        val catalog = emitted.single { it.file == "com/example/api/kotest/toolCallsCatalog.kt" }.result
+        catalog.contains("public object toolCalls {") shouldBe true
+        catalog.contains("public val putExpectedArgs: PutExpectedArgsCall") shouldBe true
+    }
+
     test("contract with nested type bodies — emits per-field builders end-to-end") {
         // Sanity check that the catalog pipeline (TypesafeDslEmitter -> DslFileEmitter)
         // forwards module-level Type definitions so nested-custom-field bodies emit

@@ -12,7 +12,7 @@ java {
     withSourcesJar()
 }
 
-val wirespecVersion = "0.19.0-RC.3"
+val wirespecVersion = "0.0.0-SNAPSHOT"
 val kotestVersion = "6.1.11"
 
 dependencies {

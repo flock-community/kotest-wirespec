@@ -87,8 +87,17 @@ internal class EndpointReflection private constructor(
             val fromResponseMethod = jcls.declaredMethods.firstOrNull { it.name == "fromResponse" || it.name == "fromRawResponse" }
                 ?: error("${cls.simpleName}: no fromResponse/fromRawResponse method found.")
 
-            // Pick the secondary user-facing Request constructor (fewest params).
-            val requestConstructor = requestClass.declaredConstructors.minByOrNull { it.parameterCount }
+            // Pick the user-facing secondary Request constructor: the emitter's
+            // secondary flattens path/query/header fields and never declares the
+            // primary's `method` parameter. Fewest-params alone is not enough —
+            // an endpoint with many flattened params (e.g. 1 path + 6 queries)
+            // has a secondary that is LARGER than the 5-arg primary. Fall back
+            // to fewest-params for hand-rolled Request classes without retained
+            // parameter names.
+            val requestConstructor = requestClass.declaredConstructors
+                .filter { ctor -> ctor.parameters.none { it.name == "method" } }
+                .minByOrNull { it.parameterCount }
+                ?: requestClass.declaredConstructors.minByOrNull { it.parameterCount }
                 ?: error("${cls.simpleName}.Request: no constructors found.")
             val paramNames = requestConstructor.parameters.map { it.name }
             require(paramNames.all { it != null && !it.matches(Regex("arg\\d+")) }) {

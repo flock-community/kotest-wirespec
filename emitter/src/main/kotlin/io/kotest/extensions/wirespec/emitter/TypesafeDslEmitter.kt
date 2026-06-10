@@ -78,7 +78,19 @@ open class TypesafeDslEmitter(
         return Emitted(file = emitted.file, result = patched)
     }
 
-    /** Derive the catalog object name from a module's `.ws` file URI basename. */
+    /**
+     * Derive the catalog object name from a module's `.ws` file URI basename.
+     * Hand-authored basenames may contain characters that are illegal in a
+     * Kotlin identifier (e.g. `tool-calls.ws`); camel-case across the illegal
+     * separators so the catalog still compiles (`tool-calls` -> `toolCalls`).
+     */
     private fun catalogNameOf(fileUri: String): String =
         fileUri.substringAfterLast('/').substringAfterLast('\\').removeSuffix(".ws")
+            .split(nonIdentifierChars)
+            .filter { it.isNotEmpty() }
+            .mapIndexed { i, part -> if (i == 0) part else part.replaceFirstChar(Char::uppercaseChar) }
+            .joinToString("")
+            .let { if (it.firstOrNull()?.isDigit() == true) "_$it" else it }
+
+    private val nonIdentifierChars = Regex("[^A-Za-z0-9_]+")
 }

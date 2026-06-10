@@ -4,7 +4,6 @@ import io.kotest.extensions.wirespec.dsl.WirespecScenarioDsl
 import kotlin.time.Duration
 import com.example.api.endpoint.PetCreateNested
 import io.kotest.property.Arb
-import io.kotest.extensions.wirespec.dsl.asArb
 import io.kotest.property.Gen
 import com.example.api.model.Pet
 import com.example.api.model.Owner
@@ -19,14 +18,14 @@ public class PetCreateNestedCall internal constructor() {
     public fun body(block: PetCreateNestedPetBodyBuilder.() -> Unit): PetCreateNestedCall = apply {
         val builder = PetCreateNestedPetBodyBuilder().apply(block)
         inner.body {
-            builder.name?.let { registerPath("name") { it.asArb() } }
+            builder.name?.let { registerPath("name") { it } }
             builder._ownerBlock?.let { block ->
                 val nested_owner = PetCreateNestedOwnerBodyBuilder().apply(block)
-                nested_owner.email?.let { registerPath("owner", "email") { it.asArb() } }
+                nested_owner.email?.let { registerPath("owner", "email") { it } }
             }
             builder._tagsBlock?.let { block ->
                 val nested_tags = PetCreateNestedTagBodyBuilder().apply(block)
-                nested_tags.label?.let { registerPath("tags", "*", "label") { it.asArb() } }
+                nested_tags.label?.let { registerPath("tags", "*", "label") { it } }
             }
         }
     }

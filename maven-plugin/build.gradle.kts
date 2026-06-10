@@ -37,7 +37,7 @@ tasks.named<Copy>("processResources") {
         expand(
             "projectVersion" to project.version.toString(),
             "extractorVersion" to (providers.gradleProperty("wirespecExtractorVersion").orNull ?: "0.0.10"),
-            "wirespecVersion" to (providers.gradleProperty("wirespecVersion").orNull ?: "0.19.0-RC.3"),
+            "wirespecVersion" to (providers.gradleProperty("wirespecVersion").orNull ?: "0.0.0-SNAPSHOT"),
         )
     }
     from("src/main/resources")

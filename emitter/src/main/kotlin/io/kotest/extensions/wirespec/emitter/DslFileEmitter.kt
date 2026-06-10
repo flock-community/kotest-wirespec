@@ -33,7 +33,6 @@ object DslFileEmitter {
                 import("io.kotest.property", "Arb")
             }
             if (shape.bodyType != null && hasPrimitiveField(shape.bodyFieldShapes)) {
-                import("io.kotest.extensions.wirespec.dsl", "asArb")
                 import("io.kotest.property", "Gen")
             }
             if (shape.bodyKind == EndpointShape.BodyKind.List) {
@@ -146,7 +145,7 @@ object DslFileEmitter {
             val pathArgs = (pathPrefix + nameSegment).joinToString(", ")
             when (f) {
                 is EndpointShape.BodyFieldShape.Primitive -> {
-                    out.appendLine("$indent$receiver.${f.name}?.let { registerPath($pathArgs) { it.asArb() } }")
+                    out.appendLine("$indent$receiver.${f.name}?.let { registerPath($pathArgs) { it } }")
                 }
                 is EndpointShape.BodyFieldShape.NestedObject -> {
                     val nestedBuilder = "$builderPrefix${f.typeName}BodyBuilder"

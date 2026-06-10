@@ -36,7 +36,9 @@ class PetScenariosSpec : FunSpec({
 
         PetControllerV1.updatePet
             .path(petId)
-            .body { name = Arb.constant("new name") }
+            .body {
+                name = Arb.constant("new name")
+            }
             .expecting<UpdatePet.Response200> { it.body.name shouldNotBe null }
 
         PetControllerV1.getPet1.path(petId).expecting<GetPet1.Response200> {

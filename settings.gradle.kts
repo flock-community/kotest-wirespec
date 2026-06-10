@@ -2,6 +2,7 @@ pluginManagement {
     repositories {
         mavenCentral()
         gradlePluginPortal()
+        mavenLocal()
     }
     // Composite-included build: the Gradle plugin lives at ./gradle-plugin/ as
     // its own Gradle build. Substituting via pluginManagement lets `:example`
@@ -14,6 +15,7 @@ pluginManagement {
 dependencyResolutionManagement {
     repositories {
         mavenCentral()
+        mavenLocal()
     }
 }
 

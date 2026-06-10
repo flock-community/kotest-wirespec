@@ -4,7 +4,6 @@ import io.kotest.extensions.wirespec.dsl.WirespecScenarioDsl
 import kotlin.time.Duration
 import com.example.api.endpoint.PetCreateBulk
 import io.kotest.property.Arb
-import io.kotest.extensions.wirespec.dsl.asArb
 import io.kotest.property.Gen
 import io.kotest.property.arbitrary.int
 import com.example.api.model.Pet
@@ -19,7 +18,7 @@ public class PetCreateBulkCall internal constructor() {
         val builder = PetCreateBulkPetBodyBuilder().apply(block)
         inner.bodyListSize(Arb.int(count))
         inner.body {
-            builder.name?.let { registerPath("*", "name") { it.asArb() } }
+            builder.name?.let { registerPath("*", "name") { it } }
         }
     }
     public suspend inline fun <reified R : PetCreateBulk.Response<*>> expecting(): R =

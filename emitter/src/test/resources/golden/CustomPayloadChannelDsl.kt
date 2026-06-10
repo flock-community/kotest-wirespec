@@ -2,7 +2,6 @@ package com.example.api.kotest
 import io.kotest.extensions.wirespec.dsl.channelCall
 import io.kotest.extensions.wirespec.dsl.WirespecScenarioDsl
 import io.kotest.property.Arb
-import io.kotest.extensions.wirespec.dsl.asArb
 import io.kotest.property.Gen
 import kotlin.time.Duration
 import com.example.api.channel.PetCreatedChannel
@@ -23,8 +22,8 @@ public class PetCreatedChannelCall internal constructor() {
     public suspend fun send(block: PetCreatedPayloadBuilder.() -> Unit): PetCreated {
         val builder = PetCreatedPayloadBuilder().apply(block)
         return inner.send {
-            builder.id?.let { registerPath("id") { it.asArb() } }
-            builder.name?.let { registerPath("name") { it.asArb() } }
+            builder.id?.let { registerPath("id") { it } }
+            builder.name?.let { registerPath("name") { it } }
         }
     }
     public suspend fun expecting(): PetCreated =
