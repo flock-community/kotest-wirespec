@@ -4,13 +4,12 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import community.flock.wirespec.integration.jackson.kotlin.WirespecSerialization
 import io.kotest.extensions.wirespec.WirespecTestContext
 import io.kotest.extensions.wirespec.spring.http
+import io.kotest.extensions.wirespec.withWirespec
 import io.kotest.extensions.wirespec.example.generated.endpoint.CreatePet
 import io.kotest.extensions.wirespec.example.generated.endpoint.DeletePet
-import io.kotest.extensions.wirespec.example.generated.endpoint.GetPet
-import io.kotest.extensions.wirespec.example.generated.endpoint.ListPets
+import io.kotest.extensions.wirespec.example.generated.endpoint.GetPet1
 import io.kotest.extensions.wirespec.example.generated.endpoint.UpdatePet
-import io.kotest.extensions.wirespec.example.generated.kotest.wirespec
-import io.kotest.extensions.wirespec.scenario
+import io.kotest.extensions.wirespec.example.generated.kotest.PetControllerV1
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.property.Arb
@@ -22,12 +21,6 @@ import org.junit.jupiter.api.Test
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.web.server.LocalServerPort
 
-/**
- * JUnit Jupiter twin of [PetScenariosSpec]. Demonstrates that the `scenario(...)` DSL
- * is framework-neutral: the inner block is identical to the Kotest example;
- * only the outer wiring (`@SpringBootTest` + `@Test fun = runBlocking { checkAll { … } }`)
- * is JUnit-flavored.
- */
 @SpringBootTest(
     classes = [ExampleApplication::class],
     webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
@@ -50,35 +43,23 @@ class PetScenariosJUnitTest {
     @Test
     fun `pet CRUD`(): Unit = runBlocking {
         checkAll<Int>(iterations = 10) {
-            scenario(ctx) {
-                val petId = wirespec.createPet
+            withWirespec(ctx) {
+                val petId = PetControllerV1.createPet
                     .returning<CreatePet.Response201, String> { it.body.id }
 
-                wirespec.getPet.path(petId).expecting<GetPet.Response200>()
+                PetControllerV1.getPet1.path(petId).expecting<GetPet1.Response200>()
 
                 val newName = Arb.string()
-                wirespec.updatePet
+                val updated = PetControllerV1.updatePet
                     .path(petId)
                     .body { name = newName }
                     .expecting<UpdatePet.Response200> { it.body.name shouldNotBe null }
 
-                wirespec.getPet.path(petId).expecting<GetPet.Response200>()
-                wirespec.deletePet.path(id = petId).expecting<DeletePet.Response204>()
-                wirespec.getPet.path(petId).expecting<GetPet.Response404>()
-            }
-        }
-    }
-
-    @Test
-    fun `typesafe queries`(): Unit = runBlocking {
-        checkAll<Int>(iterations = 8) {
-            scenario(ctx) {
-                repeat(25) { wirespec.createPet.expecting<CreatePet.Response201>() }
-                wirespec.listPets
-                    .query(limit = 10, offset = 0)
-                    .expecting<ListPets.Response200> { resp ->
-                        resp.body.content.size shouldBe resp.body.total.coerceAtMost(10)
-                    }
+                PetControllerV1.getPet1.path(petId).expecting<GetPet1.Response200> {
+                    it.body.name shouldBe updated.body.name
+                }
+                PetControllerV1.deletePet.path(id = petId).expecting<DeletePet.Response204>()
+                PetControllerV1.getPet1.path(petId).expecting<GetPet1.Response404>()
             }
         }
     }
