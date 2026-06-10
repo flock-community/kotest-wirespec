@@ -36,9 +36,11 @@ class KotestWirespecPlugin : Plugin<Project> {
                 override fun execute(task: CompileWirespecTask) {
                     task.description = "Generate Kotlin sources + typesafe DSL from the extracted Wirespec contracts."
                     task.group = "wirespec"
-                    // Default input is used when spring=false; afterEvaluate
-                    // below overrides it to the extracted dir when spring=true.
-                    task.input.set(defaultInputDir)
+                    // wirespecPath, when set, always wins. Otherwise this
+                    // default applies when spring=false; the afterEvaluate
+                    // block below overrides it to the extracted dir when
+                    // spring=true and wirespecPath is unset.
+                    task.input.set(extension.wirespecPath.orElse(defaultInputDir))
                     task.output.set(generatedDir)
                     task.packageName.set(resolvedGeneratedPackage)
                     task.emitterClass.set(TypesafeDslEmitter::class.java)
@@ -53,14 +55,16 @@ class KotestWirespecPlugin : Plugin<Project> {
             if (extension.spring.get()) {
                 project.pluginManager.apply("community.flock.wirespec.spring.extractor")
                 val extractorExt = project.extensions.getByType(WirespecExtractorExtension::class.java)
-                extractorExt.outputDir.set(extractedDir)
+                // wirespecPath, when set, is both where the extractor writes
+                // and where the compile task reads; otherwise the build dir.
+                extractorExt.outputDir.set(extension.wirespecPath.orElse(extractedDir))
                 extractorExt.basePackage.set(extension.basePackage)
 
                 val extractTask = project.tasks.named("extractWirespec", ExtractWirespecTask::class.java)
                 compileTask.configure(
                     object : Action<CompileWirespecTask> {
                         override fun execute(task: CompileWirespecTask) {
-                            task.input.set(extractedDir)
+                            task.input.set(extension.wirespecPath.orElse(extractedDir))
                             task.dependsOn(extractTask)
                         }
                     },
