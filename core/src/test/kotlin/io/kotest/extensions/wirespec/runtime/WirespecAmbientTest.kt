@@ -5,6 +5,7 @@ import community.flock.wirespec.integration.jackson.kotlin.WirespecSerialization
 import community.flock.wirespec.kotlin.Wirespec
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.extensions.wirespec.WirespecTestContext
+import io.kotest.extensions.wirespec.useWirespecSeed
 import io.kotest.extensions.wirespec.withWirespec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
@@ -30,5 +31,19 @@ class WirespecAmbientTest : FunSpec({
             ambient.endpointContext() shouldBe ctx
             ambient.rng.seed shouldBe 7L
         }
+    }
+
+    test("useWirespecSeed rebinds the ambient RandomSource to the checkAll iteration source") {
+        val ctx = WirespecTestContext(noopHttp, serialization)
+        val seenSeeds = mutableListOf<Long>()
+        withWirespec(ctx, seed = 1L) {
+            io.kotest.property.checkAll<Int>(iterations = 3) {
+                useWirespecSeed()
+                seenSeeds += currentAmbient().rng.seed
+            }
+        }
+        // After binding, the ambient seed is no longer the fixed 1L for every iteration.
+        seenSeeds.size shouldBe 3
+        seenSeeds.any { it != 1L } shouldBe true
     }
 })
