@@ -15,7 +15,8 @@ plugins {
 
 kotestWirespec {
     basePackage.set("com.example.api")
-    // spring = false  // opt out of Spring extraction; supply .ws files under src/test/wirespec/
+    // spring = false                                  // opt out of Spring extraction
+    // wirespecPath.set(file("src/test/wirespec"))     // compile .ws files from this folder
 }
 
 dependencies {
@@ -24,7 +25,7 @@ dependencies {
 }
 ```
 
-By default the plugin auto-detects whether `org.springframework.boot` is applied and wires the Spring extractor accordingly. Set `kotestWirespec { spring = false }` to skip extraction and supply hand-authored `.ws` files via `src/test/wirespec/` (or configure the upstream `community.flock.wirespec.plugin.gradle` extension).
+By default the plugin auto-detects whether `org.springframework.boot` is applied and wires the Spring extractor accordingly. Set `kotestWirespec { spring = false }` to skip extraction and compile hand-authored `.ws` files instead — from `src/test/wirespec/` by default, or from a folder you set via `wirespecPath`. `wirespecPath`, when set, is always the compile input; with `spring = true` the extractor writes its emitted `.ws` files there before compiling (point it at a dedicated directory).
 
 …or, in Maven:
 
@@ -39,6 +40,7 @@ By default the plugin auto-detects whether `org.springframework.boot` is applied
             <configuration>
                 <basePackage>com.example.api</basePackage>
                 <!-- <spring>false</spring> -->
+                <!-- <wirespecPath>${project.basedir}/src/test/wirespec</wirespecPath> -->
             </configuration>
         </execution>
     </executions>
