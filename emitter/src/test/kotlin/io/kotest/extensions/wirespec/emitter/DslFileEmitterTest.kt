@@ -28,7 +28,7 @@ class DslFileEmitterTest : FunSpec({
         emitted.result shouldBe readGolden("NoSlotsDsl.kt")
     }
 
-    test("path-only endpoint (PetGet) — typed path() + lazy + ResultRef overloads") {
+    test("path-only endpoint (PetGet) — typed path() + lazy builder overloads") {
         val stringRef = community.flock.wirespec.compiler.core.parse.ast.Reference.Primitive(
             community.flock.wirespec.compiler.core.parse.ast.Reference.Primitive.Type.String(null), false
         )

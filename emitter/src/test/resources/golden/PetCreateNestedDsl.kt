@@ -1,8 +1,6 @@
 package com.example.api.kotest
-import io.kotest.extensions.wirespec.dsl.ResultRef
-import io.kotest.extensions.wirespec.dsl.ScenarioBuilder
+import io.kotest.extensions.wirespec.dsl.endpointCall
 import io.kotest.extensions.wirespec.dsl.WirespecScenarioDsl
-import io.kotest.extensions.wirespec.dsl.EndpointCallBuilder.StreamingMode
 import kotlin.time.Duration
 import com.example.api.endpoint.PetCreateNested
 import io.kotest.property.Arb
@@ -12,8 +10,8 @@ import com.example.api.model.Pet
 import com.example.api.model.Owner
 import com.example.api.model.Tag
 @WirespecScenarioDsl
-public class PetCreateNestedCall internal constructor(scenario: ScenarioBuilder) {
-    @PublishedApi internal val inner = scenario.endpoint(PetCreateNested.Handler, PetCreateNested)
+public class PetCreateNestedCall internal constructor() {
+    @PublishedApi internal val inner = endpointCall(PetCreateNested.Handler, PetCreateNested)
     public fun body(value: Pet): PetCreateNestedCall =
         apply { inner.body(value) }
     public fun body(arb: Arb<Pet>): PetCreateNestedCall =
@@ -32,16 +30,18 @@ public class PetCreateNestedCall internal constructor(scenario: ScenarioBuilder)
             }
         }
     }
-    public inline fun <reified R : PetCreateNested.Response<*>> expecting(): PetCreateNestedCall =
-        apply { inner.expecting<R>() }
-    public inline fun <reified R : PetCreateNested.Response<*>> expecting(noinline block: (R) -> Unit): PetCreateNestedCall =
-        apply { inner.expecting<R>(block) }
-    public inline fun <reified R : PetCreateNested.Response<*>, T> returning(noinline projection: (R) -> T): ResultRef<T> =
+    public suspend inline fun <reified R : PetCreateNested.Response<*>> expecting(): R =
+        inner.expecting<R>()
+    public suspend inline fun <reified R : PetCreateNested.Response<*>> expecting(noinline block: (R) -> Unit): R =
+        inner.expecting<R>(block)
+    public suspend inline fun <reified R : PetCreateNested.Response<*>, T> returning(noinline projection: (R) -> T): T =
         inner.returning<R, T>(projection)
-    public inline fun <reified R : PetCreateNested.Response<*>> collecting(count: Int, noinline block: (List<R>) -> Unit): PetCreateNestedCall =
-        apply { inner.collecting<R>(count, block) }
-    public inline fun <reified R : PetCreateNested.Response<*>> collecting(duration: Duration, noinline block: (List<R>) -> Unit): PetCreateNestedCall =
-        apply { inner.collecting<R>(duration, block) }
+    public suspend inline fun <reified R : PetCreateNested.Response<*>> collecting(count: Int, noinline block: (List<R>) -> Unit) {
+        inner.collecting<R>(count, block)
+    }
+    public suspend inline fun <reified R : PetCreateNested.Response<*>> collecting(duration: Duration, noinline block: (List<R>) -> Unit) {
+        inner.collecting<R>(duration, block)
+    }
 }
 @WirespecScenarioDsl
 public class PetCreateNestedPetBodyBuilder {

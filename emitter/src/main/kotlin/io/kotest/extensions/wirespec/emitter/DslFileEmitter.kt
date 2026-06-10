@@ -25,10 +25,8 @@ object DslFileEmitter {
         val irFile = file("${shape.name}Dsl") {
             `package`(kotestPkg)
 
-            import("io.kotest.extensions.wirespec.dsl", "ResultRef")
-            import("io.kotest.extensions.wirespec.dsl", "ScenarioBuilder")
+            import("io.kotest.extensions.wirespec.dsl", "endpointCall")
             import("io.kotest.extensions.wirespec.dsl", "WirespecScenarioDsl")
-            import("io.kotest.extensions.wirespec.dsl", "EndpointCallBuilder.StreamingMode")
             import("kotlin.time", "Duration")
             import(endpointPkg, shape.name)
             if (shape.bodyType != null) {
@@ -63,8 +61,8 @@ object DslFileEmitter {
 
     private fun renderCallClass(shape: EndpointShape): String = buildString {
         appendLine("@WirespecScenarioDsl")
-        appendLine("public class ${shape.name}Call internal constructor(scenario: ScenarioBuilder) {")
-        appendLine("    @PublishedApi internal val inner = scenario.endpoint(${shape.name}.Handler, ${shape.name})")
+        appendLine("public class ${shape.name}Call internal constructor() {")
+        appendLine("    @PublishedApi internal val inner = endpointCall(${shape.name}.Handler, ${shape.name})")
         if (shape.bodyType != null) append(renderBodySlot(shape, shape.bodyType))
         if (shape.pathFields.isNotEmpty()) append(renderPathSlot(shape))
         if (shape.queryFields.isNotEmpty()) append(renderQuerySlot(shape))
@@ -102,12 +100,6 @@ object DslFileEmitter {
 
         appendLine("    public fun path($params): $call =")
         appendLine("        apply { inner.path(${shape.name}.Path($ctorArgs)) }")
-
-        if (shape.pathFields.size == 1) {
-            val f = shape.pathFields.single()
-            appendLine("    public fun path(${f.name}: ResultRef<${f.kotlinType}>): $call =")
-            appendLine("        apply { inner.path { ${shape.name}.Path(${f.name} = ${f.name}.require()) } }")
-        }
 
         appendLine("    public fun path(builder: () -> ${shape.name}.Path): $call =")
         appendLine("        apply { inner.path(builder) }")
@@ -235,16 +227,16 @@ object DslFileEmitter {
 
     private fun renderResponseDsl(shape: EndpointShape): String = buildString {
         val resp = "${shape.name}.Response<*>"
-        val call = "${shape.name}Call"
-        appendLine("    public inline fun <reified R : $resp> expecting(): $call =")
-        appendLine("        apply { inner.expecting<R>() }")
-        appendLine("    public inline fun <reified R : $resp> expecting(noinline block: (R) -> Unit): $call =")
-        appendLine("        apply { inner.expecting<R>(block) }")
-        appendLine("    public inline fun <reified R : $resp, T> returning(noinline projection: (R) -> T): ResultRef<T> =")
+        appendLine("    public suspend inline fun <reified R : $resp> expecting(): R =")
+        appendLine("        inner.expecting<R>()")
+        appendLine("    public suspend inline fun <reified R : $resp> expecting(noinline block: (R) -> Unit): R =")
+        appendLine("        inner.expecting<R>(block)")
+        appendLine("    public suspend inline fun <reified R : $resp, T> returning(noinline projection: (R) -> T): T =")
         appendLine("        inner.returning<R, T>(projection)")
-        appendLine("    public inline fun <reified R : $resp> collecting(count: Int, noinline block: (List<R>) -> Unit): $call =")
-        appendLine("        apply { inner.collecting<R>(count, block) }")
-        appendLine("    public inline fun <reified R : $resp> collecting(duration: Duration, noinline block: (List<R>) -> Unit): $call =")
-        append("        apply { inner.collecting<R>(duration, block) }")
+        appendLine("    public suspend inline fun <reified R : $resp> collecting(count: Int, noinline block: (List<R>) -> Unit) {")
+        appendLine("        inner.collecting<R>(count, block)")
+        appendLine("    }")
+        appendLine("    public suspend inline fun <reified R : $resp> collecting(duration: Duration, noinline block: (List<R>) -> Unit) {")
+        append("        inner.collecting<R>(duration, block)\n    }")
     }
 }
