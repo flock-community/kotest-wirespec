@@ -44,6 +44,16 @@ class KotestWirespecMojo : AbstractMojo() {
     @Parameter(defaultValue = "\${project.build.directory}/generated-sources/wirespec")
     lateinit var generatedDir: File
 
+    /**
+     * Folder of `.ws` contracts to compile. When set, this is always the
+     * compile input — even with spring=true, in which case the extractor
+     * writes its emitted `.ws` files here (use a dedicated directory). When
+     * unset, the input defaults to [extractedDir] (spring=true) or
+     * `src/test/wirespec` (spring=false).
+     */
+    @Parameter(property = "kotestWirespec.wirespecPath")
+    var wirespecPath: File? = null
+
     @Parameter(defaultValue = "\${project}", readonly = true, required = true)
     lateinit var project: MavenProject
 
@@ -60,6 +70,10 @@ class KotestWirespecMojo : AbstractMojo() {
 
         val springEnabled = spring ?: hasSpringBootOnClasspath()
 
+        val extractorOutput = wirespecPath ?: extractedDir
+        val inputDir = wirespecPath
+            ?: if (springEnabled) extractedDir else File(project.basedir, "src/test/wirespec")
+
         if (springEnabled) {
             log.info("Extracting Wirespec from package $basePackage")
             executeMojo(
@@ -71,14 +85,14 @@ class KotestWirespecMojo : AbstractMojo() {
                 goal("extract"),
                 configuration(
                     element("basePackage", basePackage),
-                    element("output", extractedDir.absolutePath),
+                    element("output", extractorOutput.absolutePath),
                 ),
                 env,
             )
         } else {
             log.info(
                 "Skipping wirespec-spring-extractor (kotestWirespec.spring = false). " +
-                    "Using pre-existing .ws files at ${extractedDir.absolutePath}.",
+                    "Using .ws files at ${inputDir.absolutePath}.",
             )
         }
 
@@ -94,11 +108,10 @@ class KotestWirespecMojo : AbstractMojo() {
             ),
             goal("compile"),
             configuration(
-                element("input", extractedDir.absolutePath),
+                element("input", inputDir.absolutePath),
                 element("output", generatedDir.absolutePath),
                 element("packageName", effectivePackage),
                 element("emitterClass", EMITTER_FQCN),
-                element("languages", element("language", "Kotlin")),
             ),
             env,
         )
@@ -112,14 +125,14 @@ class KotestWirespecMojo : AbstractMojo() {
     private companion object {
         const val EXTRACTOR_GROUP = "community.flock.wirespec.spring"
         const val EXTRACTOR_ARTIFACT = "wirespec-spring-extractor-maven-plugin"
-        const val EXTRACTOR_VERSION = "0.0.10"
+        const val EXTRACTOR_VERSION = "0.0.0-SNAPSHOT"
 
         const val WIRESPEC_GROUP = "community.flock.wirespec.plugin.maven"
         const val WIRESPEC_ARTIFACT = "wirespec-maven-plugin"
         // Must match the wirespecVersion used by emitter/ — see gradle.properties.
         // Mismatched versions cause Arrow 1.x vs 2.x classloader incompatibility
         // when the upstream compiler and our emitter share a plugin realm.
-        const val WIRESPEC_VERSION = "0.19.0-RC.3"
+        const val WIRESPEC_VERSION = "0.0.0-SNAPSHOT"
 
         const val EMITTER_GROUP = "io.kotest.extensions.wirespec"
         const val EMITTER_ARTIFACT = "kotest-wirespec-emitter"
