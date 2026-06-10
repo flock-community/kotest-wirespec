@@ -25,7 +25,7 @@ import kotlin.reflect.jvm.isAccessible
  *      [ApplicationContext], look up a `MockMvc` bean, wrap it in
  *      [MockMvcTransportation]. Returns `null` if either step fails — the
  *      user can then pass an explicit context (e.g. a `LocalServerPort`-driven
- *      [WebClientTransportation]) to `scenario(ctx, …)`.
+ *      [WebClientTransportation]) to `withWirespec(ctx) { … }`.
  *   2. For [channelContext], try to resolve an `EmbeddedKafkaBroker` bean
  *      via [EmbeddedKafkaMessageTransport]. Returns `null` if the
  *      `@EmbeddedKafka` setup isn't present.
