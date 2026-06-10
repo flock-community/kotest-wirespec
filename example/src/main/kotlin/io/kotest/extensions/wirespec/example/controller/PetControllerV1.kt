@@ -21,8 +21,8 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
-@RequestMapping("/api/pets")
-class PetController(
+@RequestMapping("/api/v1/pets")
+class PetControllerV1(
     private val repository: PetRepository,
     private val publisher: PetEventPublisher,
 ) {
