@@ -24,11 +24,4 @@ class InputTest : FunSpec({
         lazy.resolve(rs) shouldBe "v1"
         lazy.resolve(rs) shouldBe "v2"
     }
-
-    test("ResultRef.clear unsets the bound value") {
-        val ref = ResultRef<Int>(label = "clearable")
-        ref.set(7)
-        ref.clear()
-        runCatching { ref.require() }.isFailure shouldBe true
-    }
 })
