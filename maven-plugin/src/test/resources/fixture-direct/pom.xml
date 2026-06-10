@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>io.kotest.extensions.wirespec.fixture</groupId>
+    <artifactId>maven-fixture-direct</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>3.4.1</version>
+        <relativePath/>
+    </parent>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
+        <kotlin.version>2.3.0</kotlin.version>
+        <kotest.version>6.1.11</kotest.version>
+        <wirespec.runtime.version>0.0.0-SNAPSHOT</wirespec.runtime.version>
+        <wirespec.plugin.version>0.0.0-SNAPSHOT</wirespec.plugin.version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.module</groupId>
+            <artifactId>jackson-module-kotlin</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.jetbrains.kotlin</groupId>
+            <artifactId>kotlin-reflect</artifactId>
+            <version>${kotlin.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.kotest.extensions.wirespec</groupId>
+            <artifactId>kotest-wirespec</artifactId>
+            <version>${wirespec.runtime.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.kotest.extensions.wirespec</groupId>
+            <artifactId>kotest-wirespec-spring</artifactId>
+            <version>${wirespec.runtime.version}</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <sourceDirectory>src/main/kotlin</sourceDirectory>
+        <testSourceDirectory>src/test/kotlin</testSourceDirectory>
+
+        <plugins>
+            <plugin>
+                <groupId>org.jetbrains.kotlin</groupId>
+                <artifactId>kotlin-maven-plugin</artifactId>
+                <version>${kotlin.version}</version>
+                <configuration>
+                    <jvmTarget>21</jvmTarget>
+                    <args>
+                        <arg>-Xjsr305=strict</arg>
+                        <arg>-java-parameters</arg>
+                    </args>
+                    <compilerPlugins>
+                        <plugin>spring</plugin>
+                    </compilerPlugins>
+                </configuration>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.jetbrains.kotlin</groupId>
+                        <artifactId>kotlin-maven-allopen</artifactId>
+                        <version>${kotlin.version}</version>
+                    </dependency>
+                </dependencies>
+                <executions>
+                    <execution>
+                        <id>test-compile</id>
+                        <phase>process-test-sources</phase>
+                        <goals><goal>test-compile</goal></goals>
+                        <configuration>
+                            <sourceDirs>
+                                <sourceDir>${project.build.directory}/generated-sources/wirespec</sourceDir>
+                            </sourceDirs>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>io.kotest.extensions.wirespec</groupId>
+                <artifactId>kotest-wirespec-maven-plugin</artifactId>
+                <version>${wirespec.plugin.version}</version>
+                <executions>
+                    <execution>
+                        <goals><goal>generate</goal></goals>
+                        <configuration>
+                            <basePackage>example</basePackage>
+                            <spring>false</spring>
+                            <wirespecPath>${project.basedir}/src/test/wirespec</wirespecPath>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+    <repositories>
+        <repository>
+            <id>maven-central</id>
+            <url>https://repo.maven.apache.org/maven2</url>
+        </repository>
+    </repositories>
+    <pluginRepositories>
+        <pluginRepository>
+            <id>maven-central</id>
+            <url>https://repo.maven.apache.org/maven2</url>
+        </pluginRepository>
+    </pluginRepositories>
+</project>
