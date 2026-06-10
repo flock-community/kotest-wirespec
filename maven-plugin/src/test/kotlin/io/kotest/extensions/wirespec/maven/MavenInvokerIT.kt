@@ -53,6 +53,49 @@ class MavenInvokerIT {
         )
     }
 
+    @Test
+    fun `direct mode generates from wirespecPath without running the extractor`() {
+        val fixtureSrc = locateFixture("fixture-direct")
+        val workDir = Files.createTempDirectory("kotest-wirespec-direct")
+        copyDir(fixtureSrc.toPath(), workDir)
+
+        val request = DefaultInvocationRequest().apply {
+            baseDirectory = workDir.toFile()
+            goals = listOf("test-compile")
+            isBatchMode = true
+            javaHome = File(System.getProperty("java.home"))
+        }
+
+        val invoker = DefaultInvoker().apply {
+            mavenHome = resolveMavenHome()
+                ?: error("Could not locate Maven. Set MAVEN_HOME or ensure mvn is on PATH.")
+        }
+
+        val result: InvocationResult = invoker.execute(request)
+        assertEquals(0, result.exitCode, "mvn test-compile failed in direct-mode fixture (see logs above)")
+
+        val target = workDir.resolve("target")
+
+        // Extractor must NOT have run: no build/wirespec output dir.
+        val extracted = target.resolve("wirespec").toFile()
+        assertTrue(
+            !extracted.exists(),
+            "Expected no extractor output at $extracted in direct mode, but it exists",
+        )
+
+        // DSL generated from the hand-authored pet.ws.
+        val generated = target.resolve("generated-sources/wirespec").toFile()
+        val generatedFiles = generated.walkTopDown().filter { it.isFile && it.extension == "kt" }.toList()
+        assertTrue(
+            generatedFiles.any { it.path.contains("/endpoint/") },
+            "Expected a generated endpoint .kt file; saw ${generatedFiles.map { it.path }}",
+        )
+        assertTrue(
+            generatedFiles.any { it.path.contains("/kotest/") },
+            "Expected a generated DSL .kt file; saw ${generatedFiles.map { it.path }}",
+        )
+    }
+
     private fun resolveMavenHome(): File? {
         // 1. Explicit env wins.
         val envHome = System.getenv("MAVEN_HOME") ?: System.getenv("M2_HOME")
@@ -73,13 +116,13 @@ class MavenInvokerIT {
         return null
     }
 
-    private fun locateFixture(): File {
-        val onClasspath = javaClass.getResource("/fixture/pom.xml")
+    private fun locateFixture(name: String = "fixture"): File {
+        val onClasspath = javaClass.getResource("/$name/pom.xml")
         if (onClasspath != null) {
             return File(onClasspath.toURI()).parentFile
         }
         val module = File(System.getProperty("user.dir"))
-        return module.resolve("src/test/resources/fixture")
+        return module.resolve("src/test/resources/$name")
     }
 
     private fun copyDir(source: Path, target: Path) {
