@@ -2,6 +2,7 @@ package io.kotest.extensions.wirespec.dsl
 
 import community.flock.wirespec.integration.kotest.KotestWirespecGeneratorBuilder
 import community.flock.wirespec.kotlin.Wirespec
+import io.kotest.extensions.wirespec.runtime.CallExecutor
 import io.kotest.extensions.wirespec.validation.EndpointReflection
 import io.kotest.property.Arb
 import kotlin.reflect.KClass
@@ -9,8 +10,7 @@ import kotlin.time.Duration
 
 @WirespecScenarioDsl
 class EndpointCallBuilder<BodyT : Any, Req : Wirespec.Request<BodyT>, Resp : Wirespec.Response<*>> internal constructor(
-    private val scenario: ScenarioBuilder,
-    internal val client: Wirespec.Client<Req, Resp>,
+    @PublishedApi internal val client: Wirespec.Client<Req, Resp>,
     endpointObject: Wirespec.Endpoint,
 ) {
 
@@ -23,45 +23,27 @@ class EndpointCallBuilder<BodyT : Any, Req : Wirespec.Request<BodyT>, Resp : Wir
     @PublishedApi internal var headerInput: Input<Any>? = null
 
     internal var bodyOverrides: (KotestWirespecGeneratorBuilder.() -> Unit)? = null
-
     internal var bodyListSize: Arb<Int>? = null
-
     internal var expectedStatuses: Set<Int>? = null
-
     internal var customAssertion: ((Any) -> Unit)? = null
 
-    internal var streamingMode: StreamingMode? = null
-
-    internal var returningProjection: ((Any) -> Any?)? = null
-    internal var returnedRef: ResultRef<Any?>? = null
-
-    init {
-        scenario.register(this)
-    }
-
     fun body(value: BodyT): EndpointCallBuilder<BodyT, Req, Resp> = apply {
-        bodyInput = Input.Literal(value)
-        bodyOverrides = null
+        bodyInput = Input.Literal(value); bodyOverrides = null
     }
 
     fun body(arb: Arb<BodyT>): EndpointCallBuilder<BodyT, Req, Resp> = apply {
-        bodyInput = Input.FromArb(arb)
-        bodyOverrides = null
+        bodyInput = Input.FromArb(arb); bodyOverrides = null
     }
 
     fun body(overrides: KotestWirespecGeneratorBuilder.() -> Unit): EndpointCallBuilder<BodyT, Req, Resp> = apply {
-        bodyInput = null
-        bodyOverrides = overrides
+        bodyInput = null; bodyOverrides = overrides
     }
 
-    fun bodyListSize(size: Arb<Int>): EndpointCallBuilder<BodyT, Req, Resp> = apply {
-        bodyListSize = size
-    }
+    fun bodyListSize(size: Arb<Int>): EndpointCallBuilder<BodyT, Req, Resp> = apply { bodyListSize = size }
 
     inline fun <reified P : Wirespec.Path> path(value: P): EndpointCallBuilder<BodyT, Req, Resp> = apply {
         require(reflection.pathClass.isInstance(value)) {
-            "${reflection.endpointName}.path: expected ${reflection.pathClass.simpleName}, " +
-                "got ${P::class.simpleName}"
+            "${reflection.endpointName}.path: expected ${reflection.pathClass.simpleName}, got ${P::class.simpleName}"
         }
         pathInput = Input.Literal(value)
     }
@@ -72,8 +54,7 @@ class EndpointCallBuilder<BodyT : Any, Req : Wirespec.Request<BodyT>, Resp : Wir
 
     inline fun <reified Q : Wirespec.Queries> query(value: Q): EndpointCallBuilder<BodyT, Req, Resp> = apply {
         require(reflection.queriesClass.isInstance(value)) {
-            "${reflection.endpointName}.query: expected ${reflection.queriesClass.simpleName}, " +
-                "got ${Q::class.simpleName}"
+            "${reflection.endpointName}.query: expected ${reflection.queriesClass.simpleName}, got ${Q::class.simpleName}"
         }
         queryInput = Input.Literal(value)
     }
@@ -84,8 +65,7 @@ class EndpointCallBuilder<BodyT : Any, Req : Wirespec.Request<BodyT>, Resp : Wir
 
     inline fun <reified H : Wirespec.Request.Headers> header(value: H): EndpointCallBuilder<BodyT, Req, Resp> = apply {
         require(reflection.headersClass.isInstance(value)) {
-            "${reflection.endpointName}.header: expected ${reflection.headersClass.simpleName}, " +
-                "got ${H::class.simpleName}"
+            "${reflection.endpointName}.header: expected ${reflection.headersClass.simpleName}, got ${H::class.simpleName}"
         }
         headerInput = Input.Literal(value)
     }
@@ -94,51 +74,54 @@ class EndpointCallBuilder<BodyT : Any, Req : Wirespec.Request<BodyT>, Resp : Wir
         headerInput = Input.Lazy { builder() as Any }
     }
 
-    inline fun <reified R : Resp> expecting(): EndpointCallBuilder<BodyT, Req, Resp> =
-        expecting(R::class)
+    // ---- terminals (eager, suspend) ----
 
-    fun <R : Resp> expecting(variantClass: KClass<R>): EndpointCallBuilder<BodyT, Req, Resp> = apply {
+    suspend inline fun <reified R : Resp> expecting(): R = expecting(R::class)
+
+    suspend fun <R : Resp> expecting(variantClass: KClass<R>): R {
         expectedStatuses = setOf(statusOf(variantClass))
+        @Suppress("UNCHECKED_CAST")
+        return CallExecutor.executeEndpoint(this) as R
     }
 
-    inline fun <reified R : Resp> expecting(noinline block: (R) -> Unit): EndpointCallBuilder<BodyT, Req, Resp> =
-        expecting(R::class, block)
+    suspend inline fun <reified R : Resp> expecting(noinline block: (R) -> Unit): R = expecting(R::class, block)
 
-    fun <R : Resp> expecting(variantClass: KClass<R>, block: (R) -> Unit): EndpointCallBuilder<BodyT, Req, Resp> = apply {
+    suspend fun <R : Resp> expecting(variantClass: KClass<R>, block: (R) -> Unit): R {
         expectedStatuses = setOf(statusOf(variantClass))
         @Suppress("UNCHECKED_CAST")
         customAssertion = { response -> block(response as R) }
-    }
-
-    inline fun <reified R : Resp, T> returning(noinline projection: (R) -> T): ResultRef<T> =
-        returning(R::class, projection)
-
-    fun <R : Resp, T> returning(variantClass: KClass<R>, projection: (R) -> T): ResultRef<T> {
-        expectedStatuses = setOf(statusOf(variantClass))
-        val ref = ResultRef<T>(label = "${reflection.endpointName}.${variantClass.simpleName}")
         @Suppress("UNCHECKED_CAST")
-        returnedRef = ref as ResultRef<Any?>
-        returningProjection = { response ->
-            @Suppress("UNCHECKED_CAST")
-            projection(response as R)
-        }
-        return ref
+        return CallExecutor.executeEndpoint(this) as R
     }
 
-    inline fun <reified R : Resp> collecting(count: Int, noinline block: (List<R>) -> Unit): EndpointCallBuilder<BodyT, Req, Resp> =
+    suspend inline fun <reified R : Resp, T> returning(noinline projection: (R) -> T): T = returning(R::class, projection)
+
+    suspend fun <R : Resp, T> returning(variantClass: KClass<R>, projection: (R) -> T): T {
+        expectedStatuses = setOf(statusOf(variantClass))
+        val resp = CallExecutor.executeEndpoint(this)
+        @Suppress("UNCHECKED_CAST")
+        return projection(resp as R)
+    }
+
+    suspend inline fun <reified R : Resp> collecting(count: Int, noinline block: (List<R>) -> Unit) =
         collecting(R::class, StreamingMode.ByCount(count), block)
 
-    inline fun <reified R : Resp> collecting(duration: Duration, noinline block: (List<R>) -> Unit): EndpointCallBuilder<BodyT, Req, Resp> =
+    suspend inline fun <reified R : Resp> collecting(duration: Duration, noinline block: (List<R>) -> Unit) =
         collecting(R::class, StreamingMode.ByDuration(duration), block)
 
-    fun <R : Resp> collecting(variantClass: KClass<R>, mode: StreamingMode, block: (List<R>) -> Unit): EndpointCallBuilder<BodyT, Req, Resp> = apply {
+    /**
+     * Endpoint streaming is not yet implemented: [mode]'s count/duration are not
+     * honored — the single validated response is delivered as a one-element list.
+     */
+    suspend fun <R : Resp> collecting(variantClass: KClass<R>, mode: StreamingMode, block: (List<R>) -> Unit) {
         expectedStatuses = setOf(statusOf(variantClass))
-        streamingMode = mode
+        val resp = CallExecutor.executeEndpoint(this)
         @Suppress("UNCHECKED_CAST")
-        customAssertion = { events -> block(events as List<R>) }
+        block(listOf(resp as R))
     }
 
-    private fun statusOf(variantClass: KClass<*>): Int {
+    @PublishedApi
+    internal fun statusOf(variantClass: KClass<*>): Int {
         val name = variantClass.simpleName
             ?: error("Anonymous response variant class — pass a named ResponseNNN class.")
         val match = STATUS_REGEX.matchEntire(name)
@@ -152,7 +135,8 @@ class EndpointCallBuilder<BodyT : Any, Req : Wirespec.Request<BodyT>, Resp : Wir
     }
 
     companion object {
-        private val STATUS_REGEX = Regex("Response(\\d{3})")
+        @PublishedApi
+        internal val STATUS_REGEX = Regex("Response(\\d{3})")
     }
 }
 
