@@ -51,7 +51,7 @@ class TypesafeDslEmitterTest : FunSpec({
         files shouldContain "com/example/api/endpoint/PetCreate.kt"
     }
 
-    test("emit appends one WirespecCatalog.kt aggregating every endpoint then channel") {
+    test("emit groups endpoints/channels per module into one top-level catalog object each") {
         fun endpoint(name: String) = Endpoint(
             comment = null,
             annotations = emptyList(),
@@ -69,19 +69,28 @@ class TypesafeDslEmitterTest : FunSpec({
             identifier = DefinitionIdentifier("PetCreatedChannel"),
             reference = Reference.Primitive(Reference.Primitive.Type.String(null), false),
         )
-        val module = Module(FileUri("mem://pets.ws"), nonEmptyListOf(endpoint("PetCreate"), endpoint("PetGet"), channel))
-        val ast = Root(nonEmptyListOf(module))
+        val v1 = Module(FileUri("mem://PetControllerV1.ws"), nonEmptyListOf(endpoint("PetCreate"), endpoint("PetGet")))
+        val publisher = Module(FileUri("mem://PetEventPublisher.ws"), nonEmptyListOf(channel))
+        val ast = Root(nonEmptyListOf(v1, publisher))
 
         val emitter = TypesafeDslEmitter(PackageName("com.example.api"), EmitShared())
-        val emitted = emitter.emit(ast, noLogger)
+        val emitted = emitter.emit(ast, noLogger).toList()
 
-        val catalogs = emitted.toList().filter { it.file == "com/example/api/kotest/WirespecCatalog.kt" }
-        catalogs.size shouldBe 1
-        val catalog = catalogs.single().result
-        catalog.contains("public val ScenarioBuilder.wirespec: WirespecCatalog") shouldBe true
-        catalog.contains("public val petCreate: PetCreateCall") shouldBe true
-        catalog.contains("public val petGet: PetGetCall") shouldBe true
-        catalog.contains("public val petCreatedChannel: PetCreatedChannelCall") shouldBe true
+        val v1Catalog = emitted.single { it.file == "com/example/api/kotest/PetControllerV1Catalog.kt" }.result
+        v1Catalog.contains("public object PetControllerV1 {") shouldBe true
+        v1Catalog.contains("public val petCreate: PetCreateCall") shouldBe true
+        v1Catalog.contains("get() = PetCreateCall()") shouldBe true
+        v1Catalog.contains("public val petGet: PetGetCall") shouldBe true
+
+        val pubCatalog = emitted.single { it.file == "com/example/api/kotest/PetEventPublisherCatalog.kt" }.result
+        pubCatalog.contains("public object PetEventPublisher {") shouldBe true
+        pubCatalog.contains("public val petCreatedChannel: PetCreatedChannelCall") shouldBe true
+
+        // Per-module scoping: V1's catalog must not contain the channel, and vice versa.
+        v1Catalog.contains("PetCreatedChannel") shouldBe false
+        pubCatalog.contains("PetCreateCall") shouldBe false
+
+        emitted.none { it.file == "com/example/api/kotest/WirespecCatalog.kt" } shouldBe true
     }
 
     test("contract with nested type bodies — emits per-field builders end-to-end") {

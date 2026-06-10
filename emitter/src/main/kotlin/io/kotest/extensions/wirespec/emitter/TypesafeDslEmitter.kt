@@ -19,32 +19,34 @@ open class TypesafeDslEmitter(
 
     override fun emit(ast: AST, logger: Logger): NonEmptyList<Emitted> {
         val base = super.emit(ast, logger)
-        val statements = ast.modules.toList().flatMap { it.statements.toList() }
-        val types = statements.filterIsInstance<Type>().associateBy { it.identifier.value }
-        val refined = statements.filterIsInstance<Refined>().associateBy { it.identifier.value }
+        val modules = ast.modules.toList()
+        val allStatements = modules.flatMap { it.statements.toList() }
+        val types = allStatements.filterIsInstance<Type>().associateBy { it.identifier.value }
+        val refined = allStatements.filterIsInstance<Refined>().associateBy { it.identifier.value }
 
-        val endpoints = statements.filterIsInstance<Endpoint>()
-        val channels = statements.filterIsInstance<Channel>()
+        val endpoints = allStatements.filterIsInstance<Endpoint>()
+        val channels = allStatements.filterIsInstance<Channel>()
 
         val endpointDsl: List<Emitted> = endpoints.map { DslFileEmitter.emit(it, packageName, types, refined) }
         val channelDsl: List<Emitted> = channels.map { ChannelDslFileEmitter.emit(it, packageName, types, refined) }
 
-        // One catalog aggregates every endpoint and channel under
-        // `ScenarioBuilder.wirespec` so completion shows only the contract's
-        // operations. `emit` runs once per compilation with the full AST, so
-        // exactly one catalog is produced regardless of how many `.ws` modules.
-        val catalog: List<Emitted> =
-            if (endpoints.isEmpty() && channels.isEmpty()) {
-                emptyList()
+        // One catalog object per source `.ws` module (controller), named after the
+        // file. Modules with neither endpoints nor channels (e.g. types-only) emit
+        // nothing.
+        val catalog: List<Emitted> = modules.mapNotNull { module ->
+            val moduleEndpoints = module.statements.toList().filterIsInstance<Endpoint>().map { it.identifier.value }
+            val moduleChannels = module.statements.toList().filterIsInstance<Channel>().map { it.identifier.value }
+            if (moduleEndpoints.isEmpty() && moduleChannels.isEmpty()) {
+                null
             } else {
-                listOf(
-                    CatalogFileEmitter.emit(
-                        endpointNames = endpoints.map { it.identifier.value },
-                        channelNames = channels.map { it.identifier.value },
-                        packageName = packageName,
-                    ),
+                CatalogFileEmitter.emit(
+                    catalogName = catalogNameOf(module.fileUri.value),
+                    endpointNames = moduleEndpoints,
+                    channelNames = moduleChannels,
+                    packageName = packageName,
                 )
             }
+        }
 
         // Upstream's KotlinIrEmitter only adds `import Wirespec` to a generated
         // file when its owning module's `needImports()` returns true. That check
@@ -75,4 +77,8 @@ open class TypesafeDslEmitter(
             text.substring(insertAt)
         return Emitted(file = emitted.file, result = patched)
     }
+
+    /** Derive the catalog object name from a module's `.ws` file URI basename. */
+    private fun catalogNameOf(fileUri: String): String =
+        fileUri.substringAfterLast('/').substringAfterLast('\\').removeSuffix(".ws")
 }

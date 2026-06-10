@@ -8,17 +8,17 @@ class CatalogFileEmitterTest : FunSpec({
 
     val pkg = PackageName("com.example.api")
 
-    test("WirespecCatalog exposes one accessor per endpoint then channel under ScenarioBuilder.wirespec") {
+    test("emit produces a per-controller catalog object with one accessor per endpoint") {
         val emitted = CatalogFileEmitter.emit(
+            catalogName = "PetControllerV1",
             endpointNames = listOf("PetCreate", "PetGet"),
-            channelNames = listOf("PetCreatedChannel"),
+            channelNames = emptyList(),
             packageName = pkg,
         )
-
-        emitted.file shouldBe "com/example/api/kotest/WirespecCatalog.kt"
-        emitted.result shouldBe readGolden("WirespecCatalog.kt")
+        emitted.file shouldBe "com/example/api/kotest/PetControllerV1Catalog.kt"
+        emitted.result.contains("public object PetControllerV1 {") shouldBe true
+        emitted.result.contains("public val petCreate: PetCreateCall") shouldBe true
+        emitted.result.contains("get() = PetCreateCall()") shouldBe true
+        emitted.result.contains("ScenarioBuilder") shouldBe false
     }
 })
-
-private fun readGolden(name: String): String =
-    CatalogFileEmitterTest::class.java.classLoader.getResource("golden/$name")!!.readText()

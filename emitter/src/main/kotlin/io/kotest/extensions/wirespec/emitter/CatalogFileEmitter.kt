@@ -6,50 +6,40 @@ import community.flock.wirespec.ir.core.file
 import community.flock.wirespec.ir.generator.KotlinGenerator
 
 /**
- * Emits a single `WirespecCatalog.kt` aggregating every endpoint and channel
- * under one `ScenarioBuilder.wirespec` accessor. Qualified access
- * (`wirespec.createPet`) keeps IDE completion to just the contract's operations
- * — bare-prefix completion inside `scenario { }` would otherwise surface every
- * accessible top-level declaration (stdlib `createTempFile`, … ).
+ * Emits one top-level catalog `object` per source controller (`.ws` module),
+ * named after the controller. `PetControllerV1.createPet…` reads as a bare
+ * object access — no `scenario { }` receiver — and IDE completion stays scoped
+ * to that controller's operations.
  *
  * The generated `*Call` classes live in the same `<pkg>.kotest` package, so the
- * catalog references them without imports and reaches their `internal`
+ * object references them without imports and reaches their `internal`
  * constructors within the consumer's generated module.
  */
 object CatalogFileEmitter {
 
     fun emit(
+        catalogName: String,
         endpointNames: List<String>,
         channelNames: List<String>,
         packageName: PackageName,
     ): Emitted {
         val kotestPkg = "${packageName.value}.kotest"
-        val filePath = kotestPkg.replace('.', '/') + "/WirespecCatalog.kt"
+        val filePath = kotestPkg.replace('.', '/') + "/${catalogName}Catalog.kt"
 
-        val irFile = file("WirespecCatalog") {
+        val irFile = file("${catalogName}Catalog") {
             `package`(kotestPkg)
-
-            import("io.kotest.extensions.wirespec.dsl", "ScenarioBuilder")
-            import("io.kotest.extensions.wirespec.dsl", "WirespecScenarioDsl")
-
-            raw(renderExtensionProperty())
-            raw(renderCatalogClass(endpointNames + channelNames))
+            raw(renderCatalogObject(catalogName, endpointNames + channelNames))
         }
 
         return Emitted(file = filePath, result = KotlinGenerator.generate(irFile))
     }
 
-    private fun renderExtensionProperty(): String =
-        "public val ScenarioBuilder.wirespec: WirespecCatalog\n" +
-            "    get() = WirespecCatalog(this)"
-
-    private fun renderCatalogClass(names: List<String>): String = buildString {
-        appendLine("@WirespecScenarioDsl")
-        appendLine("public class WirespecCatalog internal constructor(private val scenario: ScenarioBuilder) {")
+    private fun renderCatalogObject(catalogName: String, names: List<String>): String = buildString {
+        appendLine("public object $catalogName {")
         names.forEach { name ->
             val dslName = name.replaceFirstChar(Char::lowercaseChar)
             appendLine("    public val $dslName: ${name}Call")
-            appendLine("        get() = ${name}Call(scenario)")
+            appendLine("        get() = ${name}Call()")
         }
         append("}")
     }
