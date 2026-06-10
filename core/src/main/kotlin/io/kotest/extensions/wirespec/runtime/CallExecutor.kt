@@ -51,7 +51,16 @@ internal object CallExecutor {
                 t,
             )
         }
-        call.customAssertion?.invoke(typedResponse)
+        call.customAssertion?.let { assertion ->
+            try {
+                assertion.invoke(typedResponse)
+            } catch (t: Throwable) {
+                throw AssertionError(
+                    "${reflection.endpointName} assertion failed (wirespec seed=${ambient.rng.seed}): ${t.message}",
+                    t,
+                )
+            }
+        }
         return typedResponse
     }
 
@@ -112,12 +121,30 @@ internal object CallExecutor {
                 if (call.direction == ChannelCallBuilder.Direction.Expect) {
                     val one = typed.singleOrNull() ?: throw AssertionError(
                         "${call.reflection.channelName}: expected exactly 1 message on '$topic' within " +
-                            "$within, got ${typed.size}.",
+                            "$within, got ${typed.size} (wirespec seed=${ambient.rng.seed}).",
                     )
-                    call.customAssertion?.invoke(one)
+                    call.customAssertion?.let { assertion ->
+                        try {
+                            assertion.invoke(one)
+                        } catch (t: Throwable) {
+                            throw AssertionError(
+                                "${call.reflection.channelName} assertion failed (wirespec seed=${ambient.rng.seed}): ${t.message}",
+                                t,
+                            )
+                        }
+                    }
                     one
                 } else {
-                    call.customAssertion?.invoke(typed)
+                    call.customAssertion?.let { assertion ->
+                        try {
+                            assertion.invoke(typed)
+                        } catch (t: Throwable) {
+                            throw AssertionError(
+                                "${call.reflection.channelName} assertion failed (wirespec seed=${ambient.rng.seed}): ${t.message}",
+                                t,
+                            )
+                        }
+                    }
                     typed
                 }
             }

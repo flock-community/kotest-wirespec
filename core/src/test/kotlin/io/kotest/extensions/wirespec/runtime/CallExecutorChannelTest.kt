@@ -62,4 +62,16 @@ class CallExecutorChannelTest : FunSpec({
             collected shouldBe listOf(GreetingPayload("a"), GreetingPayload("b"), GreetingPayload("c"))
         }
     }
+
+    test("a failing channel assertion surfaces the wirespec seed for reproduction") {
+        val channelCtx = WirespecChannelContext(InMemoryMessageTransport(), serialization)
+        val ex = runCatching {
+            withWirespec(httpCtx, channelCtx, seed = 42L) {
+                channelCall<GreetingPayload>(GreetingChannelStub::class).topic("g").send(GreetingPayload("hi"))
+                channelCall<GreetingPayload>(GreetingChannelStub::class).topic("g")
+                    .expecting<GreetingPayload> { it shouldBe GreetingPayload("WRONG") }
+            }
+        }.exceptionOrNull() ?: error("expected an assertion failure")
+        ex.message!! shouldContain "wirespec seed=42"
+    }
 })
