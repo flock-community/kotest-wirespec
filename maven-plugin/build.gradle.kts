@@ -32,7 +32,7 @@ dependencies {
 // replaced with the build version before it lands in the jar.
 tasks.named<Copy>("processResources") {
     from("src/main/resources-template") {
-        include("**/*.xml")
+        include("**/*.xml", "**/*.properties")
         expand(
             "projectVersion" to project.version.toString(),
             "extractorVersion" to (providers.gradleProperty("wirespecExtractorVersion").orNull ?: "0.0.13"),

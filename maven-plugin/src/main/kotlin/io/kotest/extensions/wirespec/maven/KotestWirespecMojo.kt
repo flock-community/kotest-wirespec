@@ -125,19 +125,34 @@ class KotestWirespecMojo : AbstractMojo() {
     private companion object {
         const val EXTRACTOR_GROUP = "community.flock.wirespec.spring"
         const val EXTRACTOR_ARTIFACT = "wirespec-spring-extractor-maven-plugin"
-        const val EXTRACTOR_VERSION = "0.0.0-SNAPSHOT"
 
         const val WIRESPEC_GROUP = "community.flock.wirespec.plugin.maven"
         const val WIRESPEC_ARTIFACT = "wirespec-maven-plugin"
-        // Must match the wirespecVersion used by emitter/ — see gradle.properties.
-        // Mismatched versions cause Arrow 1.x vs 2.x classloader incompatibility
-        // when the upstream compiler and our emitter share a plugin realm.
-        const val WIRESPEC_VERSION = "0.0.0-SNAPSHOT"
 
-        const val EMITTER_GROUP = "io.kotest.extensions.wirespec"
+        const val EMITTER_GROUP = "community.flock.wirespec.kotest"
         const val EMITTER_ARTIFACT = "kotest-wirespec-emitter"
-        const val EMITTER_VERSION = "0.0.0-SNAPSHOT"
         const val EMITTER_FQCN =
             "io.kotest.extensions.wirespec.emitter.TypesafeDslEmitter"
+
+        // Versions are injected at build time (see maven-plugin/build.gradle.kts
+        // processResources → kotest-wirespec-versions.properties), so the
+        // released plugin pins released coordinates and the emitter version
+        // tracks this plugin's own version. WIRESPEC_VERSION must match the
+        // wirespecVersion the emitter is built against (gradle.properties) —
+        // mismatched versions cause Arrow 1.x vs 2.x classloader
+        // incompatibility when the upstream compiler and our emitter share a
+        // plugin realm.
+        private val versions: java.util.Properties by lazy {
+            java.util.Properties().apply {
+                KotestWirespecMojo::class.java
+                    .getResourceAsStream("/kotest-wirespec-versions.properties")
+                    ?.use { load(it) }
+                    ?: error("kotest-wirespec-versions.properties not found on the plugin classpath")
+            }
+        }
+
+        val EXTRACTOR_VERSION: String get() = versions.getProperty("extractorVersion")
+        val WIRESPEC_VERSION: String get() = versions.getProperty("wirespecVersion")
+        val EMITTER_VERSION: String get() = versions.getProperty("emitterVersion")
     }
 }
