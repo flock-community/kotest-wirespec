@@ -19,8 +19,8 @@ repositories {
 
 dependencies {
     implementation(gradleApi())
-    implementation("community.flock.wirespec.plugin.gradle:community.flock.wirespec.plugin.gradle.gradle.plugin:0.0.0-SNAPSHOT")
-    implementation("community.flock.wirespec.spring:wirespec-spring-extractor-gradle-plugin:0.0.0-SNAPSHOT")
+    implementation("community.flock.wirespec.plugin.gradle:community.flock.wirespec.plugin.gradle.gradle.plugin:0.19.3-RC.1")
+    implementation("community.flock.wirespec.spring:wirespec-spring-extractor-gradle-plugin:0.0.13")
     implementation("io.kotest.extensions.wirespec:kotest-wirespec-emitter:0.0.0-SNAPSHOT")
 
     testImplementation(kotlin("test"))
