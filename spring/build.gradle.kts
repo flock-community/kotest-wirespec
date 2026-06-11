@@ -1,12 +1,13 @@
 plugins {
     kotlin("jvm") version "2.3.0"
     `java-library`
-    `maven-publish`
+    id("com.vanniktech.maven.publish.base")
 }
+
+description = "Spring transports (MockMvc, WebClient, EmbeddedKafka) and auto-registered ContextProvider for kotest-wirespec."
 
 java {
     toolchain { languageVersion = JavaLanguageVersion.of(21) }
-    withSourcesJar()
 }
 
 val springBootVersion = "3.4.1"
@@ -44,17 +45,4 @@ kotlin {
 
 tasks.test {
     useJUnitPlatform()
-}
-
-publishing {
-    publications {
-        create<MavenPublication>("maven") {
-            from(components["java"])
-            artifactId = "kotest-wirespec-spring"
-            pom {
-                name.set("Kotest Wirespec Spring Integration")
-                description.set("Spring transports (MockMvc, WebClient, EmbeddedKafka) and auto-registered ContextProvider for kotest-wirespec.")
-            }
-        }
-    }
 }

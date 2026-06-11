@@ -1,12 +1,13 @@
 plugins {
     kotlin("jvm") version "2.3.0"
     `java-library`
-    `maven-publish`
+    id("com.vanniktech.maven.publish.base")
 }
+
+description = "Property-based scenario DSL for validating endpoints against Wirespec contracts."
 
 java {
     toolchain { languageVersion = JavaLanguageVersion.of(21) }
-    withSourcesJar()
 }
 
 val wirespecVersion = "0.19.3-RC.1"
@@ -50,17 +51,4 @@ kotlin {
 
 tasks.test {
     useJUnitPlatform()
-}
-
-publishing {
-    publications {
-        create<MavenPublication>("maven") {
-            from(components["java"])
-            artifactId = "kotest-wirespec"
-            pom {
-                name.set("Kotest Wirespec Runtime")
-                description.set("Property-based scenario DSL for validating endpoints against Wirespec contracts.")
-            }
-        }
-    }
 }
