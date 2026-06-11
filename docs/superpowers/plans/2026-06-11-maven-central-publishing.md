@@ -823,14 +823,16 @@ Expected: BUILD SUCCESSFUL, with test tasks from `:core`, `:spring`, `:example`,
 Run: `./gradlew -p gradle-plugin check --stacktrace`
 Expected: BUILD SUCCESSFUL (gradle-plugin's own tests, plus its included emitter compile).
 
-- [ ] **Step 4: Verify the publish task graph wires up without publishing**
+- [ ] **Step 4: Verify the publish wiring reaches every module**
+
+> **Caveat:** `--dry-run` is honored only for the **root build's** tasks; it does **not** propagate into included-build tasks wired via `gradle.includedBuild(...).task(...)`. So `publishToMavenCentralAll --dry-run` will actually *execute* the emitter/maven-plugin publish tasks. At the `0.0.0-SNAPSHOT` dev version (and with no Central credentials set), they fail fast at vanniktech's "Snapshots are not supported when publishing through the central portal" guard **before any upload** — which is exactly the safe behavior we want to confirm. Do NOT run `publishToMavenCentralAll` locally with a real release version unless you intend to publish.
 
 Run: `./gradlew publishToMavenCentralAll --dry-run`
 
-Expected: the printed task graph includes `:core:publishAndReleaseToMavenCentral`, `:spring:publishAndReleaseToMavenCentral`, and the `:emitter` and `:maven-plugin` `publishAndReleaseToMavenCentral` tasks. Nothing is uploaded (`--dry-run` only prints).
+Expected: `:core:publishAndReleaseToMavenCentral` and `:spring:publishAndReleaseToMavenCentral` print as `SKIPPED` (root build honors `--dry-run`); the `:emitter` and `:maven-plugin` `publishMavenPublicationToMavenCentralRepository` tasks run and FAIL with "Snapshots are not supported when publishing through the central portal". That failure confirms both that the included builds are reachable through the aggregator and that the SNAPSHOT guard is active.
 
 Run: `./gradlew -p gradle-plugin publishAndReleaseToMavenCentral --dry-run`
-Expected: the graph includes the gradle-plugin's `publishAndReleaseToMavenCentral` (and its plugin-marker publication). Nothing uploaded.
+Expected: BUILD SUCCESSFUL; the printed graph includes `publishKotestWirespecPluginMarkerMavenPublicationToMavenCentralRepository` and `publishAndReleaseToMavenCentral` (all `SKIPPED`). Standalone `-p` builds honor `--dry-run`, so nothing runs.
 
 - [ ] **Step 5: Commit**
 

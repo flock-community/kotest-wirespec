@@ -26,6 +26,31 @@ tasks.register("publishToMavenLocalAll") {
     dependsOn(gradle.includedBuild("maven-plugin").task(":publishToMavenLocal"))
 }
 
+// Aggregates `check` across the root build (core, spring, example) plus the
+// emitter and maven-plugin included builds so CI runs their tests in one
+// invocation. gradle-plugin is a pluginManagement-included build, not reachable
+// via gradle.includedBuild(); CI checks it with a separate `-p gradle-plugin`.
+tasks.register("checkAll") {
+    group = "verification"
+    description = "Runs check for the root build plus the emitter and maven-plugin included builds."
+    dependsOn(subprojects.map { ":${it.name}:check" })
+    dependsOn(gradle.includedBuild("emitter").task(":check"))
+    dependsOn(gradle.includedBuild("maven-plugin").task(":check"))
+}
+
+// One command to publish the root-build + top-level-included modules to Maven
+// Central (Central Portal). The version is supplied via
+// ORG_GRADLE_PROJECT_version (an env var), which — unlike -Pversion —
+// propagates into the included builds. gradle-plugin is published separately
+// (pluginManagement-included; see the release workflow).
+tasks.register("publishToMavenCentralAll") {
+    group = "publishing"
+    description = "Publishes core, spring, emitter and maven-plugin to Maven Central."
+    dependsOn(":core:publishAndReleaseToMavenCentral", ":spring:publishAndReleaseToMavenCentral")
+    dependsOn(gradle.includedBuild("emitter").task(":publishAndReleaseToMavenCentral"))
+    dependsOn(gradle.includedBuild("maven-plugin").task(":publishAndReleaseToMavenCentral"))
+}
+
 // Maven Central publishing for the two root-build library subprojects. Each
 // applies the vanniktech `.base` plugin itself; this block holds the shared
 // config (Central Portal destination, signing, POM metadata) so it is not
