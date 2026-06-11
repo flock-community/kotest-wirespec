@@ -2,6 +2,7 @@ plugins {
     `kotlin-dsl`
     `java-gradle-plugin`
     id("com.gradle.plugin-publish") version "1.3.0"
+    id("com.vanniktech.maven.publish.base") version "0.30.0"
 }
 
 group = "community.flock.wirespec.kotest"
@@ -45,4 +46,39 @@ gradlePlugin {
 
 tasks.test {
     useJUnitPlatform()
+}
+
+mavenPublishing {
+    configureBasedOnAppliedPlugins()
+    publishToMavenCentral(
+        com.vanniktech.maven.publish.SonatypeHost.CENTRAL_PORTAL,
+        automaticRelease = true,
+    )
+    signAllPublications()
+    coordinates(group.toString(), "kotest-wirespec-gradle-plugin", version.toString())
+    pom {
+        name.set("kotest-wirespec-gradle-plugin")
+        description.set("Extracts Wirespec contracts from Spring controllers and exposes a property-based scenario DSL for Kotest.")
+        url.set("https://github.com/flock-community/kotest-wirespec")
+        licenses {
+            license {
+                name.set("The Apache License, Version 2.0")
+                url.set("https://www.apache.org/licenses/LICENSE-2.0.txt")
+            }
+        }
+        developers {
+            developer {
+                id.set("wilmveel")
+                name.set("Willem Veelenturf")
+                email.set("willem.veelenturf@flock.community")
+                organization.set("Flock. Community")
+                organizationUrl.set("https://flock.community")
+            }
+        }
+        scm {
+            connection.set("scm:git:git://github.com/flock-community/kotest-wirespec.git")
+            developerConnection.set("scm:git:ssh://github.com:flock-community/kotest-wirespec.git")
+            url.set("https://github.com/flock-community/kotest-wirespec")
+        }
+    }
 }
