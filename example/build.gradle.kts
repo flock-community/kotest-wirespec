@@ -3,7 +3,7 @@ plugins {
     id("io.spring.dependency-management") version "1.1.7"
     kotlin("jvm") version "2.3.0"
     kotlin("plugin.spring") version "2.3.0"
-    id("io.kotest.extensions.wirespec")
+    id("community.flock.wirespec.kotest")
 }
 
 group = "io.kotest.extensions.wirespec.example"

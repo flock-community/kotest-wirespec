@@ -2,7 +2,7 @@
 <plugin>
   <name>Kotest Wirespec Maven Plugin</name>
   <description>Extracts Wirespec contracts from Spring controllers and generates a typesafe Kotest DSL.</description>
-  <groupId>io.kotest.extensions.wirespec</groupId>
+  <groupId>community.flock.wirespec.kotest</groupId>
   <artifactId>kotest-wirespec-maven-plugin</artifactId>
   <version>${projectVersion}</version>
   <goalPrefix>kotest-wirespec</goalPrefix>

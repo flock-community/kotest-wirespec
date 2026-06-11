@@ -3,7 +3,7 @@ plugins {
     `maven-publish`
 }
 
-group = "io.kotest.extensions.wirespec"
+group = "community.flock.wirespec.kotest"
 version = (providers.gradleProperty("version").orNull) ?: "0.0.0-SNAPSHOT"
 
 java {

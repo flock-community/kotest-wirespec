@@ -3,7 +3,7 @@ plugins {
 }
 
 allprojects {
-    group = (rootProject.findProperty("group") as String?) ?: "io.kotest.extensions.wirespec"
+    group = (rootProject.findProperty("group") as String?) ?: "community.flock.wirespec.kotest"
     version = (rootProject.findProperty("version") as String?) ?: "0.0.0-SNAPSHOT"
 }
 
