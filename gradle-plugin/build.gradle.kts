@@ -2,9 +2,10 @@ plugins {
     `kotlin-dsl`
     `java-gradle-plugin`
     id("com.gradle.plugin-publish") version "1.3.0"
+    id("com.vanniktech.maven.publish.base") version "0.30.0"
 }
 
-group = "io.kotest.extensions"
+group = "community.flock.wirespec.kotest"
 version = (providers.gradleProperty("version").orNull) ?: "0.0.0-SNAPSHOT"
 
 java {
@@ -14,13 +15,14 @@ java {
 repositories {
     mavenCentral()
     gradlePluginPortal()
+    mavenLocal()
 }
 
 dependencies {
     implementation(gradleApi())
-    implementation("community.flock.wirespec.plugin.gradle:community.flock.wirespec.plugin.gradle.gradle.plugin:0.19.0-RC.3")
-    implementation("community.flock.wirespec.spring:wirespec-spring-extractor-gradle-plugin:0.0.8")
-    implementation("io.kotest.extensions:kotest-extensions-spring-wirespec-emitter:0.0.0-SNAPSHOT")
+    implementation("community.flock.wirespec.plugin.gradle:community.flock.wirespec.plugin.gradle.gradle.plugin:0.19.3-RC.1")
+    implementation("community.flock.wirespec.spring:wirespec-spring-extractor-gradle-plugin:0.0.13")
+    implementation("community.flock.wirespec.kotest:kotest-wirespec-emitter:0.0.0-SNAPSHOT")
 
     testImplementation(kotlin("test"))
     testImplementation(gradleTestKit())
@@ -29,19 +31,54 @@ dependencies {
 }
 
 gradlePlugin {
-    website.set("https://github.com/kotest/kotest-extensions-spring-wirespec")
-    vcsUrl.set("https://github.com/kotest/kotest-extensions-spring-wirespec.git")
+    website.set("https://github.com/kotest/kotest-wirespec")
+    vcsUrl.set("https://github.com/kotest/kotest-wirespec.git")
     plugins {
-        create("kotestSpringWirespec") {
-            id = "io.kotest.extensions.spring.wirespec"
-            displayName = "Kotest Spring Wirespec"
+        create("kotestWirespec") {
+            id = "community.flock.wirespec.kotest"
+            displayName = "Kotest Wirespec"
             description = "Extracts Wirespec contracts from Spring controllers and exposes a property-based scenario DSL for Kotest."
             tags.set(listOf("kotest", "spring", "wirespec", "property-based", "contract-testing"))
-            implementationClass = "io.kotest.extensions.spring.wirespec.gradle.KotestWirespecSpringPlugin"
+            implementationClass = "io.kotest.extensions.wirespec.gradle.KotestWirespecPlugin"
         }
     }
 }
 
 tasks.test {
     useJUnitPlatform()
+}
+
+mavenPublishing {
+    configureBasedOnAppliedPlugins()
+    publishToMavenCentral(
+        com.vanniktech.maven.publish.SonatypeHost.CENTRAL_PORTAL,
+        automaticRelease = true,
+    )
+    signAllPublications()
+    coordinates(group.toString(), "kotest-wirespec-gradle-plugin", version.toString())
+    pom {
+        name.set("kotest-wirespec-gradle-plugin")
+        description.set("Extracts Wirespec contracts from Spring controllers and exposes a property-based scenario DSL for Kotest.")
+        url.set("https://github.com/flock-community/kotest-wirespec")
+        licenses {
+            license {
+                name.set("The Apache License, Version 2.0")
+                url.set("https://www.apache.org/licenses/LICENSE-2.0.txt")
+            }
+        }
+        developers {
+            developer {
+                id.set("wilmveel")
+                name.set("Willem Veelenturf")
+                email.set("willem.veelenturf@flock.community")
+                organization.set("Flock. Community")
+                organizationUrl.set("https://flock.community")
+            }
+        }
+        scm {
+            connection.set("scm:git:git://github.com/flock-community/kotest-wirespec.git")
+            developerConnection.set("scm:git:ssh://github.com:flock-community/kotest-wirespec.git")
+            url.set("https://github.com/flock-community/kotest-wirespec")
+        }
+    }
 }

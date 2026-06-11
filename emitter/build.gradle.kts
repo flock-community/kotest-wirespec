@@ -1,18 +1,17 @@
 plugins {
     kotlin("jvm") version "2.3.0"
     `java-library`
-    `maven-publish`
+    id("com.vanniktech.maven.publish.base") version "0.30.0"
 }
 
-group = "io.kotest.extensions"
-version = (providers.gradleProperty("version").orNull) ?: "0.1.0-SNAPSHOT"
+group = "community.flock.wirespec.kotest"
+version = (providers.gradleProperty("version").orNull) ?: "0.0.0-SNAPSHOT"
 
 java {
     toolchain { languageVersion = JavaLanguageVersion.of(21) }
-    withSourcesJar()
 }
 
-val wirespecVersion = "0.19.0-RC.3"
+val wirespecVersion = "0.19.3-RC.1"
 val kotestVersion = "6.1.11"
 
 dependencies {
@@ -28,15 +27,37 @@ tasks.test {
     useJUnitPlatform()
 }
 
-publishing {
-    publications {
-        create<MavenPublication>("maven") {
-            from(components["java"])
-            artifactId = "kotest-extensions-spring-wirespec-emitter"
-            pom {
-                name.set("Kotest Spring Wirespec Emitter")
-                description.set("TypesafeDslEmitter: Wirespec Emitter that produces a typesafe Kotest DSL per endpoint.")
+mavenPublishing {
+    configureBasedOnAppliedPlugins()
+    publishToMavenCentral(
+        com.vanniktech.maven.publish.SonatypeHost.CENTRAL_PORTAL,
+        automaticRelease = true,
+    )
+    signAllPublications()
+    coordinates(group.toString(), "kotest-wirespec-emitter", version.toString())
+    pom {
+        name.set("kotest-wirespec-emitter")
+        description.set("TypesafeDslEmitter: Wirespec Emitter that produces a typesafe Kotest DSL per endpoint.")
+        url.set("https://github.com/flock-community/kotest-wirespec")
+        licenses {
+            license {
+                name.set("The Apache License, Version 2.0")
+                url.set("https://www.apache.org/licenses/LICENSE-2.0.txt")
             }
+        }
+        developers {
+            developer {
+                id.set("wilmveel")
+                name.set("Willem Veelenturf")
+                email.set("willem.veelenturf@flock.community")
+                organization.set("Flock. Community")
+                organizationUrl.set("https://flock.community")
+            }
+        }
+        scm {
+            connection.set("scm:git:git://github.com/flock-community/kotest-wirespec.git")
+            developerConnection.set("scm:git:ssh://github.com:flock-community/kotest-wirespec.git")
+            url.set("https://github.com/flock-community/kotest-wirespec")
         }
     }
 }

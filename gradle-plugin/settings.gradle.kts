@@ -9,9 +9,10 @@ dependencyResolutionManagement {
     repositories {
         mavenCentral()
         gradlePluginPortal()
+        mavenLocal()
     }
 }
 
 includeBuild("../emitter")
 
-rootProject.name = "kotest-extensions-spring-wirespec-gradle"
+rootProject.name = "kotest-wirespec-gradle"

@@ -57,7 +57,7 @@ plugins {
 }
 
 group = "io.kotest.extensions"
-version = (providers.gradleProperty("version").orNull) ?: "0.1.0-SNAPSHOT"
+version = (providers.gradleProperty("version").orNull) ?: "0.0.0-SNAPSHOT"
 
 java {
     toolchain { languageVersion = JavaLanguageVersion.of(21) }
@@ -104,12 +104,12 @@ Expected output: `BUILD SUCCESSFUL`.
 
 - [ ] **Step 4: Verify the artifact landed in ~/.m2 with the right coordinates**
 
-Run: `ls ~/.m2/repository/io/kotest/extensions/kotest-extensions-spring-wirespec-emitter/0.1.0-SNAPSHOT/`
+Run: `ls ~/.m2/repository/io/kotest/extensions/kotest-extensions-spring-wirespec-emitter/0.0.0-SNAPSHOT/`
 
 Expected output includes:
-- `kotest-extensions-spring-wirespec-emitter-0.1.0-SNAPSHOT.jar`
-- `kotest-extensions-spring-wirespec-emitter-0.1.0-SNAPSHOT.pom`
-- `kotest-extensions-spring-wirespec-emitter-0.1.0-SNAPSHOT-sources.jar`
+- `kotest-extensions-spring-wirespec-emitter-0.0.0-SNAPSHOT.jar`
+- `kotest-extensions-spring-wirespec-emitter-0.0.0-SNAPSHOT.pom`
+- `kotest-extensions-spring-wirespec-emitter-0.0.0-SNAPSHOT-sources.jar`
 
 - [ ] **Step 5: Commit**
 
@@ -186,7 +186,7 @@ plugins {
 }
 
 group = "io.kotest.extensions"
-version = (providers.gradleProperty("version").orNull) ?: "0.1.0-SNAPSHOT"
+version = (providers.gradleProperty("version").orNull) ?: "0.0.0-SNAPSHOT"
 
 java {
     toolchain { languageVersion = JavaLanguageVersion.of(21) }
@@ -347,7 +347,7 @@ Create: `maven-plugin/src/main/resources-template/META-INF/maven/plugin.xml`
       <requiresOnline>false</requiresOnline>
       <inheritedByDefault>true</inheritedByDefault>
       <phase>generate-test-sources</phase>
-      <implementation>io.kotest.extensions.spring.wirespec.maven.KotestWirespecSpringMojo</implementation>
+      <implementation>io.kotest.extensions.wirespec.maven.KotestWirespecSpringMojo</implementation>
       <language>java</language>
       <instantiationStrategy>per-lookup</instantiationStrategy>
       <executionStrategy>once-per-session</executionStrategy>
@@ -430,7 +430,7 @@ cd /Users/wilmveel/Projects/kotest-spring/maven-plugin
 cat build/resources/main/META-INF/maven/plugin.xml | head -10
 ```
 
-Expected: `<version>0.1.0-SNAPSHOT</version>` (or whatever `version` is set to), and `${project.build.directory}` lines still containing the literal `${project.build.directory}`.
+Expected: `<version>0.0.0-SNAPSHOT</version>` (or whatever `version` is set to), and `${project.build.directory}` lines still containing the literal `${project.build.directory}`.
 
 If you see `${projectVersion}` unresolved, the `expand` wiring is wrong — revisit Task 2 Step 3.
 
@@ -458,7 +458,7 @@ Tiny unit test that loads the descriptor from the test classpath and asserts the
 Create: `maven-plugin/src/test/kotlin/io/kotest/extensions/spring/wirespec/maven/PluginDescriptorTest.kt`
 
 ```kotlin
-package io.kotest.extensions.spring.wirespec.maven
+package io.kotest.extensions.wirespec.maven
 
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNotNull
@@ -490,7 +490,7 @@ class PluginDescriptorTest {
     fun `mojo implementation FQCN matches the Kotlin class`() {
         val xml = readDescriptor()!!
         assertTrue(
-            xml.contains("<implementation>io.kotest.extensions.spring.wirespec.maven.KotestWirespecSpringMojo</implementation>"),
+            xml.contains("<implementation>io.kotest.extensions.wirespec.maven.KotestWirespecSpringMojo</implementation>"),
             "Mojo implementation FQCN drifted from descriptor",
         )
     }
@@ -543,7 +543,7 @@ The mojo itself. All it does: delegate to two upstream mojos via `mojo-executor`
 Create: `maven-plugin/src/main/kotlin/io/kotest/extensions/spring/wirespec/maven/KotestWirespecSpringMojo.kt`
 
 ```kotlin
-package io.kotest.extensions.spring.wirespec.maven
+package io.kotest.extensions.wirespec.maven
 
 import org.apache.maven.execution.MavenSession
 import org.apache.maven.plugin.AbstractMojo
@@ -650,15 +650,15 @@ class KotestWirespecSpringMojo : AbstractMojo() {
 
         const val EMITTER_GROUP = "io.kotest.extensions"
         const val EMITTER_ARTIFACT = "kotest-extensions-spring-wirespec-emitter"
-        const val EMITTER_VERSION = "0.1.0-SNAPSHOT"
+        const val EMITTER_VERSION = "0.0.0-SNAPSHOT"
         const val EMITTER_FQCN =
-            "io.kotest.extensions.spring.wirespec.emitter.TypesafeDslEmitter"
+            "io.kotest.extensions.wirespec.emitter.TypesafeDslEmitter"
     }
 }
 ```
 
 Notes:
-- `EMITTER_VERSION` is intentionally hard-coded to `0.1.0-SNAPSHOT` for the local-only iteration. Once a release goes out, this becomes a constant matching the published version. We do *not* try to read the Gradle project version at runtime — the constant is what gets compiled into the jar, and the jar is what end-users run.
+- `EMITTER_VERSION` is intentionally hard-coded to `0.0.0-SNAPSHOT` for the local-only iteration. Once a release goes out, this becomes a constant matching the published version. We do *not* try to read the Gradle project version at runtime — the constant is what gets compiled into the jar, and the jar is what end-users run.
 - `languages` is passed as `<languages><language>Kotlin</language></languages>` — the upstream `wirespec-maven-plugin:compile` mojo accepts a `java.util.List` for that parameter.
 - `effectivePackage` collapses empty/blank to the default rather than letting Maven inject an empty string.
 
@@ -725,7 +725,7 @@ Create: `maven-plugin/src/test/resources/fixture/pom.xml`
 <project xmlns="http://maven.apache.org/POM/4.0.0">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>io.kotest.extensions.spring.wirespec.fixture</groupId>
+    <groupId>io.kotest.extensions.wirespec.fixture</groupId>
     <artifactId>maven-fixture</artifactId>
     <version>0.0.1-SNAPSHOT</version>
 
@@ -742,8 +742,8 @@ Create: `maven-plugin/src/test/resources/fixture/pom.xml`
         <maven.compiler.target>21</maven.compiler.target>
         <kotlin.version>2.3.0</kotlin.version>
         <kotest.version>6.1.11</kotest.version>
-        <wirespec.runtime.version>0.1.0-SNAPSHOT</wirespec.runtime.version>
-        <wirespec.plugin.version>0.1.0-SNAPSHOT</wirespec.plugin.version>
+        <wirespec.runtime.version>0.0.0-SNAPSHOT</wirespec.runtime.version>
+        <wirespec.plugin.version>0.0.0-SNAPSHOT</wirespec.plugin.version>
     </properties>
 
     <dependencies>
@@ -933,7 +933,7 @@ package example
 
 import example.generated.endpoint.GetPet
 import example.generated.kotest.getPet
-import io.kotest.extensions.spring.wirespec.SpringScenarioSpec
+import io.kotest.extensions.wirespec.SpringScenarioSpec
 
 class PetSmokeSpec : SpringScenarioSpec(ExampleApplication::class, {
 
@@ -1022,9 +1022,9 @@ Run:
 ```bash
 cd /Users/wilmveel/Projects/kotest-spring/maven-plugin
 /Users/wilmveel/Projects/kotest-spring/gradlew --no-daemon publishToMavenLocal
-ls ~/.m2/repository/io/kotest/extensions/kotest-extensions-spring-wirespec-maven-plugin/0.1.0-SNAPSHOT/
-ls ~/.m2/repository/io/kotest/extensions/kotest-extensions-spring-wirespec/0.1.0-SNAPSHOT/
-ls ~/.m2/repository/io/kotest/extensions/kotest-extensions-spring-wirespec-emitter/0.1.0-SNAPSHOT/
+ls ~/.m2/repository/io/kotest/extensions/kotest-extensions-spring-wirespec-maven-plugin/0.0.0-SNAPSHOT/
+ls ~/.m2/repository/io/kotest/extensions/kotest-extensions-spring-wirespec/0.0.0-SNAPSHOT/
+ls ~/.m2/repository/io/kotest/extensions/kotest-extensions-spring-wirespec-emitter/0.0.0-SNAPSHOT/
 ```
 
 Expected: each `ls` shows a `.jar` and a `.pom`. If `kotest-extensions-spring-wirespec` (runtime) isn't there, run `cd /Users/wilmveel/Projects/kotest-spring && ./gradlew --no-daemon :runtime:publishToMavenLocal` once manually — it's installed once and stays.
@@ -1051,7 +1051,7 @@ Drives `mvn verify` on the fixture and asserts the build passed and the expected
 Create: `maven-plugin/src/test/kotlin/io/kotest/extensions/spring/wirespec/maven/MavenInvokerIT.kt`
 
 ```kotlin
-package io.kotest.extensions.spring.wirespec.maven
+package io.kotest.extensions.wirespec.maven
 
 import org.apache.maven.shared.invoker.DefaultInvocationRequest
 import org.apache.maven.shared.invoker.DefaultInvoker
@@ -1154,7 +1154,7 @@ Expected outcome on success: test passes; Surefire output in the temp dir shows 
 Common failure modes and what to check:
 - `mvn: command not found` → install Maven, or set `MAVEN_HOME`.
 - `Could not resolve io.kotest.extensions:kotest-extensions-spring-wirespec-emitter` → emitter wasn't published to `~/.m2`. Re-run `:emitter:publishToMavenLocal` from the outer build.
-- `ClassNotFoundException: io.kotest.extensions.spring.wirespec.emitter.TypesafeDslEmitter` → the `dependencies(...)` arg to the upstream plugin didn't propagate the emitter into its realm. Fallback per the spec's open-risks section: change the fixture POM to add the emitter as a `<dependency>` on the wrapper plugin block (i.e., make the user declare it — still one block, with one extra child).
+- `ClassNotFoundException: io.kotest.extensions.wirespec.emitter.TypesafeDslEmitter` → the `dependencies(...)` arg to the upstream plugin didn't propagate the emitter into its realm. Fallback per the spec's open-risks section: change the fixture POM to add the emitter as a `<dependency>` on the wrapper plugin block (i.e., make the user declare it — still one block, with one extra child).
 - `Compile failure: SpringScenarioSpec not found` → runtime artifact missing from `~/.m2`. Re-run `:runtime:publishToMavenLocal`.
 
 - [ ] **Step 3: Commit**
@@ -1258,5 +1258,5 @@ git commit -m "docs(readme): document Maven usage alongside Gradle"
 - [ ] All 9 tasks committed.
 - [ ] `git status` clean.
 - [ ] `cd maven-plugin && /Users/wilmveel/Projects/kotest-spring/gradlew --no-daemon test` passes (both unit and integration tests).
-- [ ] `ls ~/.m2/repository/io/kotest/extensions/kotest-extensions-spring-wirespec-maven-plugin/0.1.0-SNAPSHOT/` shows the published artifact.
+- [ ] `ls ~/.m2/repository/io/kotest/extensions/kotest-extensions-spring-wirespec-maven-plugin/0.0.0-SNAPSHOT/` shows the published artifact.
 - [ ] Re-read the spec's "Non-goals" section — confirm we did not silently expand scope (no Central publishing, no clean mojo, no example migration).

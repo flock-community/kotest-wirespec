@@ -66,7 +66,7 @@
 Create `emitter/src/test/kotlin/io/kotest/extensions/spring/wirespec/emitter/ChannelShapeTest.kt`:
 
 ```kotlin
-package io.kotest.extensions.spring.wirespec.emitter
+package io.kotest.extensions.wirespec.emitter
 
 import community.flock.wirespec.compiler.core.parse.ast.Channel
 import community.flock.wirespec.compiler.core.parse.ast.DefinitionIdentifier
@@ -145,7 +145,7 @@ class ChannelShapeTest : FunSpec({
 
 - [ ] **Step 2: Run the test, verify FAIL**
 
-Run: `./gradlew :emitter:test --tests "io.kotest.extensions.spring.wirespec.emitter.ChannelShapeTest"`
+Run: `./gradlew :emitter:test --tests "io.kotest.extensions.wirespec.emitter.ChannelShapeTest"`
 Expected: FAIL with "unresolved reference ChannelShape".
 
 - [ ] **Step 3: Implement ChannelShape**
@@ -153,7 +153,7 @@ Expected: FAIL with "unresolved reference ChannelShape".
 Create `emitter/src/main/kotlin/io/kotest/extensions/spring/wirespec/emitter/ChannelShape.kt`:
 
 ```kotlin
-package io.kotest.extensions.spring.wirespec.emitter
+package io.kotest.extensions.wirespec.emitter
 
 import community.flock.wirespec.compiler.core.parse.ast.Channel
 import community.flock.wirespec.compiler.core.parse.ast.Reference
@@ -199,7 +199,7 @@ data class ChannelShape(
 
 - [ ] **Step 4: Run the test, verify PASS**
 
-Run: `./gradlew :emitter:test --tests "io.kotest.extensions.spring.wirespec.emitter.ChannelShapeTest"`
+Run: `./gradlew :emitter:test --tests "io.kotest.extensions.wirespec.emitter.ChannelShapeTest"`
 Expected: PASS (3 tests).
 
 - [ ] **Step 5: Commit**
@@ -234,7 +234,7 @@ EOF
 Create `emitter/src/test/kotlin/io/kotest/extensions/spring/wirespec/emitter/ChannelDslFileEmitterTest.kt`:
 
 ```kotlin
-package io.kotest.extensions.spring.wirespec.emitter
+package io.kotest.extensions.wirespec.emitter
 
 import community.flock.wirespec.compiler.core.emit.PackageName
 import community.flock.wirespec.compiler.core.parse.ast.Channel
@@ -298,7 +298,7 @@ private fun readGolden(name: String): String =
 
 - [ ] **Step 2: Run test, verify FAIL**
 
-Run: `./gradlew :emitter:test --tests "io.kotest.extensions.spring.wirespec.emitter.ChannelDslFileEmitterTest"`
+Run: `./gradlew :emitter:test --tests "io.kotest.extensions.wirespec.emitter.ChannelDslFileEmitterTest"`
 Expected: FAIL with "unresolved reference ChannelDslFileEmitter".
 
 - [ ] **Step 3: Implement ChannelDslFileEmitter**
@@ -306,7 +306,7 @@ Expected: FAIL with "unresolved reference ChannelDslFileEmitter".
 Create `emitter/src/main/kotlin/io/kotest/extensions/spring/wirespec/emitter/ChannelDslFileEmitter.kt`:
 
 ```kotlin
-package io.kotest.extensions.spring.wirespec.emitter
+package io.kotest.extensions.wirespec.emitter
 
 import community.flock.wirespec.compiler.core.emit.Emitted
 import community.flock.wirespec.compiler.core.emit.PackageName
@@ -331,9 +331,9 @@ object ChannelDslFileEmitter {
         val irFile = file("${shape.name}Dsl") {
             `package`(kotestPkg)
 
-            import("io.kotest.extensions.spring.wirespec.dsl", "ResultRef")
-            import("io.kotest.extensions.spring.wirespec.dsl", "ScenarioBuilder")
-            import("io.kotest.extensions.spring.wirespec.dsl", "WirespecScenarioDsl")
+            import("io.kotest.extensions.wirespec.dsl", "ResultRef")
+            import("io.kotest.extensions.wirespec.dsl", "ScenarioBuilder")
+            import("io.kotest.extensions.wirespec.dsl", "WirespecScenarioDsl")
             import("io.kotest.property", "Arb")
             import("kotlin.time", "Duration")
             import(channelPkg, shape.name)
@@ -409,7 +409,7 @@ object ChannelDslFileEmitter {
 
 - [ ] **Step 4: Run test, see actual output, capture as golden**
 
-Run: `./gradlew :emitter:test --tests "io.kotest.extensions.spring.wirespec.emitter.ChannelDslFileEmitterTest" --info`
+Run: `./gradlew :emitter:test --tests "io.kotest.extensions.wirespec.emitter.ChannelDslFileEmitterTest" --info`
 
 Test fails because the goldens don't exist yet. We'll generate them from the emitter output. Add a temporary "println the result" branch to the test — but DON'T do that. Instead, generate the goldens by hand from the renderer specification above. Create them now:
 
@@ -418,9 +418,9 @@ Create `emitter/src/test/resources/golden/SimplePayloadChannelDsl.kt`:
 ```kotlin
 package com.example.api.kotest
 
-import io.kotest.extensions.spring.wirespec.dsl.ResultRef
-import io.kotest.extensions.spring.wirespec.dsl.ScenarioBuilder
-import io.kotest.extensions.spring.wirespec.dsl.WirespecScenarioDsl
+import io.kotest.extensions.wirespec.dsl.ResultRef
+import io.kotest.extensions.wirespec.dsl.ScenarioBuilder
+import io.kotest.extensions.wirespec.dsl.WirespecScenarioDsl
 import io.kotest.property.Arb
 import kotlin.time.Duration
 import com.example.api.channel.SimplePayloadChannel
@@ -464,9 +464,9 @@ Create `emitter/src/test/resources/golden/CustomPayloadChannelDsl.kt`:
 ```kotlin
 package com.example.api.kotest
 
-import io.kotest.extensions.spring.wirespec.dsl.ResultRef
-import io.kotest.extensions.spring.wirespec.dsl.ScenarioBuilder
-import io.kotest.extensions.spring.wirespec.dsl.WirespecScenarioDsl
+import io.kotest.extensions.wirespec.dsl.ResultRef
+import io.kotest.extensions.wirespec.dsl.ScenarioBuilder
+import io.kotest.extensions.wirespec.dsl.WirespecScenarioDsl
 import io.kotest.property.Arb
 import kotlin.time.Duration
 import com.example.api.channel.PetCreatedChannel
@@ -520,7 +520,7 @@ public class PetCreatedPayloadBuilder {
 
 - [ ] **Step 5: Run test, verify PASS**
 
-Run: `./gradlew :emitter:test --tests "io.kotest.extensions.spring.wirespec.emitter.ChannelDslFileEmitterTest"`
+Run: `./gradlew :emitter:test --tests "io.kotest.extensions.wirespec.emitter.ChannelDslFileEmitterTest"`
 Expected: PASS (2 tests). If golden mismatch surfaces a whitespace/newline diff, update the golden to match the emitter's output byte-for-byte — the goldens are the spec for the emitter, but a small tweak to match the generator's formatting is fine.
 
 - [ ] **Step 6: Commit**
@@ -554,7 +554,7 @@ EOF
 Replace the file's contents with:
 
 ```kotlin
-package io.kotest.extensions.spring.wirespec.emitter
+package io.kotest.extensions.wirespec.emitter
 
 import arrow.core.NonEmptyList
 import community.flock.wirespec.compiler.core.emit.EmitShared
@@ -625,7 +625,7 @@ EOF
 Create `runtime/src/main/kotlin/io/kotest/extensions/spring/wirespec/channel/MessageTransport.kt`:
 
 ```kotlin
-package io.kotest.extensions.spring.wirespec.channel
+package io.kotest.extensions.wirespec.channel
 
 import kotlin.time.Duration
 
@@ -703,7 +703,7 @@ EOF
 Create `runtime/src/test/kotlin/io/kotest/extensions/spring/wirespec/channel/InMemoryMessageTransportTest.kt`:
 
 ```kotlin
-package io.kotest.extensions.spring.wirespec.channel
+package io.kotest.extensions.wirespec.channel
 
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldHaveSize
@@ -772,7 +772,7 @@ class InMemoryMessageTransportTest : FunSpec({
 
 - [ ] **Step 2: Run, verify FAIL**
 
-Run: `./gradlew :runtime:test --tests "io.kotest.extensions.spring.wirespec.channel.InMemoryMessageTransportTest"`
+Run: `./gradlew :runtime:test --tests "io.kotest.extensions.wirespec.channel.InMemoryMessageTransportTest"`
 Expected: FAIL with "unresolved reference InMemoryMessageTransport".
 
 - [ ] **Step 3: Implement InMemoryMessageTransport**
@@ -780,7 +780,7 @@ Expected: FAIL with "unresolved reference InMemoryMessageTransport".
 Create `runtime/src/main/kotlin/io/kotest/extensions/spring/wirespec/channel/InMemoryMessageTransport.kt`:
 
 ```kotlin
-package io.kotest.extensions.spring.wirespec.channel
+package io.kotest.extensions.wirespec.channel
 
 import kotlinx.coroutines.delay
 import kotlin.time.Duration
@@ -836,7 +836,7 @@ class InMemoryMessageTransport : MessageTransport {
 
 - [ ] **Step 4: Run, verify PASS**
 
-Run: `./gradlew :runtime:test --tests "io.kotest.extensions.spring.wirespec.channel.InMemoryMessageTransportTest"`
+Run: `./gradlew :runtime:test --tests "io.kotest.extensions.wirespec.channel.InMemoryMessageTransportTest"`
 Expected: PASS (4 tests).
 
 - [ ] **Step 5: Commit**
@@ -869,10 +869,10 @@ EOF
 Create `runtime/src/main/kotlin/io/kotest/extensions/spring/wirespec/WirespecChannelContext.kt`:
 
 ```kotlin
-package io.kotest.extensions.spring.wirespec
+package io.kotest.extensions.wirespec
 
 import community.flock.wirespec.kotlin.Wirespec
-import io.kotest.extensions.spring.wirespec.channel.MessageTransport
+import io.kotest.extensions.wirespec.channel.MessageTransport
 
 /**
  * Framework-neutral handle for the channel half of the scenario DSL: a
@@ -881,7 +881,7 @@ import io.kotest.extensions.spring.wirespec.channel.MessageTransport
  *
  * Build it directly when you already have both halves, or — for an
  * EmbeddedKafka-backed Spring test — use the companion factory in
- * `io.kotest.extensions.spring.wirespec.channel.embeddedKafkaChannelContext`.
+ * `io.kotest.extensions.wirespec.channel.embeddedKafkaChannelContext`.
  */
 class WirespecChannelContext(
     val messaging: MessageTransport,
@@ -929,7 +929,7 @@ EOF
 Create `runtime/src/main/kotlin/io/kotest/extensions/spring/wirespec/dsl/Step.kt`:
 
 ```kotlin
-package io.kotest.extensions.spring.wirespec.dsl
+package io.kotest.extensions.wirespec.dsl
 
 /**
  * One declared step inside a scenario. Endpoint steps and channel steps
@@ -944,7 +944,7 @@ sealed class Step {
 This references `ChannelCallBuilder` which doesn't exist yet — that's fine, we'll fill it in Task C3. For now, comment the Channel data class out and uncomment in C3. Use this stub:
 
 ```kotlin
-package io.kotest.extensions.spring.wirespec.dsl
+package io.kotest.extensions.wirespec.dsl
 
 /**
  * One declared step inside a scenario. Endpoint steps and channel steps
@@ -962,7 +962,7 @@ sealed class Step {
 Replace `runtime/src/main/kotlin/io/kotest/extensions/spring/wirespec/dsl/ScenarioBuilder.kt`:
 
 ```kotlin
-package io.kotest.extensions.spring.wirespec.dsl
+package io.kotest.extensions.wirespec.dsl
 
 import community.flock.wirespec.kotlin.Wirespec
 
@@ -1010,7 +1010,7 @@ fun run() {
 Add the `Step` import at the top:
 
 ```kotlin
-import io.kotest.extensions.spring.wirespec.dsl.Step
+import io.kotest.extensions.wirespec.dsl.Step
 ```
 
 (No change to `runOne` — it still operates on `EndpointCallBuilder` directly.)
@@ -1054,7 +1054,7 @@ EOF
 Create `runtime/src/main/kotlin/io/kotest/extensions/spring/wirespec/validation/ChannelReflection.kt`:
 
 ```kotlin
-package io.kotest.extensions.spring.wirespec.validation
+package io.kotest.extensions.wirespec.validation
 
 import community.flock.wirespec.kotlin.Wirespec
 import java.util.concurrent.ConcurrentHashMap
@@ -1142,7 +1142,7 @@ EOF
 Replace `runtime/src/main/kotlin/io/kotest/extensions/spring/wirespec/dsl/Step.kt`:
 
 ```kotlin
-package io.kotest.extensions.spring.wirespec.dsl
+package io.kotest.extensions.wirespec.dsl
 
 sealed class Step {
     data class Endpoint(val call: EndpointCallBuilder<*, *, *>) : Step()
@@ -1155,7 +1155,7 @@ sealed class Step {
 Create `runtime/src/test/kotlin/io/kotest/extensions/spring/wirespec/dsl/ChannelCallBuilderTest.kt`:
 
 ```kotlin
-package io.kotest.extensions.spring.wirespec.dsl
+package io.kotest.extensions.wirespec.dsl
 
 import community.flock.wirespec.kotlin.Wirespec
 import io.kotest.core.spec.style.FunSpec
@@ -1219,7 +1219,7 @@ class ChannelCallBuilderTest : FunSpec({
 
 - [ ] **Step 3: Run, verify FAIL**
 
-Run: `./gradlew :runtime:test --tests "io.kotest.extensions.spring.wirespec.dsl.ChannelCallBuilderTest"`
+Run: `./gradlew :runtime:test --tests "io.kotest.extensions.wirespec.dsl.ChannelCallBuilderTest"`
 Expected: FAIL with "unresolved reference: channel" on ScenarioBuilder, "ChannelCallBuilder" missing.
 
 - [ ] **Step 4: Implement ChannelCallBuilder**
@@ -1227,10 +1227,10 @@ Expected: FAIL with "unresolved reference: channel" on ScenarioBuilder, "Channel
 Create `runtime/src/main/kotlin/io/kotest/extensions/spring/wirespec/dsl/ChannelCallBuilder.kt`:
 
 ```kotlin
-package io.kotest.extensions.spring.wirespec.dsl
+package io.kotest.extensions.wirespec.dsl
 
 import community.flock.wirespec.kotlin.Wirespec
-import io.kotest.extensions.spring.wirespec.validation.ChannelReflection
+import io.kotest.extensions.wirespec.validation.ChannelReflection
 import io.kotest.property.Arb
 import kotlin.reflect.KClass
 import kotlin.time.Duration
@@ -1373,7 +1373,7 @@ class ChannelCallBuilder<MessageT : Any> internal constructor(
 Edit `runtime/src/main/kotlin/io/kotest/extensions/spring/wirespec/dsl/ScenarioBuilder.kt`. Replace its body with:
 
 ```kotlin
-package io.kotest.extensions.spring.wirespec.dsl
+package io.kotest.extensions.wirespec.dsl
 
 import community.flock.wirespec.kotlin.Wirespec
 import kotlin.reflect.KClass
@@ -1415,7 +1415,7 @@ class ScenarioBuilder internal constructor(
 
 - [ ] **Step 6: Run, verify PASS**
 
-Run: `./gradlew :runtime:test --tests "io.kotest.extensions.spring.wirespec.dsl.ChannelCallBuilderTest"`
+Run: `./gradlew :runtime:test --tests "io.kotest.extensions.wirespec.dsl.ChannelCallBuilderTest"`
 Expected: PASS (5 tests).
 
 Run full runtime suite: `./gradlew :runtime:test`
@@ -1455,7 +1455,7 @@ EOF
 Create `runtime/src/test/kotlin/io/kotest/extensions/spring/wirespec/validation/ChannelValidatorTest.kt`:
 
 ```kotlin
-package io.kotest.extensions.spring.wirespec.validation
+package io.kotest.extensions.wirespec.validation
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import community.flock.wirespec.integration.jackson.kotlin.WirespecSerialization
@@ -1498,7 +1498,7 @@ class ChannelValidatorTest : FunSpec({
 
 - [ ] **Step 2: Run, verify FAIL**
 
-Run: `./gradlew :runtime:test --tests "io.kotest.extensions.spring.wirespec.validation.ChannelValidatorTest"`
+Run: `./gradlew :runtime:test --tests "io.kotest.extensions.wirespec.validation.ChannelValidatorTest"`
 Expected: FAIL with "unresolved reference: ChannelValidator".
 
 - [ ] **Step 3: Implement ChannelValidator**
@@ -1506,7 +1506,7 @@ Expected: FAIL with "unresolved reference: ChannelValidator".
 Create `runtime/src/main/kotlin/io/kotest/extensions/spring/wirespec/validation/ChannelValidator.kt`:
 
 ```kotlin
-package io.kotest.extensions.spring.wirespec.validation
+package io.kotest.extensions.wirespec.validation
 
 import community.flock.wirespec.kotlin.Wirespec
 
@@ -1553,7 +1553,7 @@ class ChannelViolation internal constructor(
 
 - [ ] **Step 4: Run, verify PASS**
 
-Run: `./gradlew :runtime:test --tests "io.kotest.extensions.spring.wirespec.validation.ChannelValidatorTest"`
+Run: `./gradlew :runtime:test --tests "io.kotest.extensions.wirespec.validation.ChannelValidatorTest"`
 Expected: PASS (2 tests).
 
 - [ ] **Step 5: Commit**
@@ -1590,11 +1590,11 @@ EOF
 Replace `runtime/src/main/kotlin/io/kotest/extensions/spring/wirespec/Scenario.kt`:
 
 ```kotlin
-package io.kotest.extensions.spring.wirespec
+package io.kotest.extensions.wirespec
 
-import io.kotest.extensions.spring.wirespec.dsl.ArbReceiver
-import io.kotest.extensions.spring.wirespec.dsl.ScenarioBuilder
-import io.kotest.extensions.spring.wirespec.runtime.ScenarioRunner
+import io.kotest.extensions.wirespec.dsl.ArbReceiver
+import io.kotest.extensions.wirespec.dsl.ScenarioBuilder
+import io.kotest.extensions.wirespec.runtime.ScenarioRunner
 import io.kotest.property.PropertyContext
 import io.kotest.property.RandomSource
 
@@ -1690,7 +1690,7 @@ private fun runChannel(call: ChannelCallBuilder<*>, index: Int) {
                     ".send(...) value not set.")
             val bytes = ctx.serialization.serializeBody(payload, call.reflection.payloadType)
             kotlinx.coroutines.runBlocking {
-                ctx.messaging.publish(io.kotest.extensions.spring.wirespec.channel.OutgoingRecord(topic, key, bytes))
+                ctx.messaging.publish(io.kotest.extensions.wirespec.channel.OutgoingRecord(topic, key, bytes))
             }
             call.returningProjection?.let { proj ->
                 @Suppress("UNCHECKED_CAST")
@@ -1711,11 +1711,11 @@ private fun runChannel(call: ChannelCallBuilder<*>, index: Int) {
 Add the missing imports at the top of the file:
 
 ```kotlin
-import io.kotest.extensions.spring.wirespec.WirespecChannelContext
-import io.kotest.extensions.spring.wirespec.WirespecTestContext
-import io.kotest.extensions.spring.wirespec.dsl.ChannelCallBuilder
-import io.kotest.extensions.spring.wirespec.dsl.ResultRef
-import io.kotest.extensions.spring.wirespec.dsl.Step
+import io.kotest.extensions.wirespec.WirespecChannelContext
+import io.kotest.extensions.wirespec.WirespecTestContext
+import io.kotest.extensions.wirespec.dsl.ChannelCallBuilder
+import io.kotest.extensions.wirespec.dsl.ResultRef
+import io.kotest.extensions.wirespec.dsl.Step
 ```
 
 Update `SpringWirespecSpec` to compile against the new `runScenarioOnce`. In `runtime/src/main/kotlin/io/kotest/extensions/spring/wirespec/SpringWirespecSpec.kt`, both call sites of `runScenarioOnce` now need a `channelCtx` arg. For now, pass `null`:
@@ -1769,16 +1769,16 @@ EOF
 Create `runtime/src/test/kotlin/io/kotest/extensions/spring/wirespec/runtime/ScenarioRunnerChannelTest.kt`:
 
 ```kotlin
-package io.kotest.extensions.spring.wirespec.runtime
+package io.kotest.extensions.wirespec.runtime
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import community.flock.wirespec.integration.jackson.kotlin.WirespecSerialization
 import community.flock.wirespec.kotlin.Wirespec
 import io.kotest.core.spec.style.FunSpec
-import io.kotest.extensions.spring.wirespec.WirespecChannelContext
-import io.kotest.extensions.spring.wirespec.WirespecTestContext
-import io.kotest.extensions.spring.wirespec.channel.InMemoryMessageTransport
-import io.kotest.extensions.spring.wirespec.scenario
+import io.kotest.extensions.wirespec.WirespecChannelContext
+import io.kotest.extensions.wirespec.WirespecTestContext
+import io.kotest.extensions.wirespec.channel.InMemoryMessageTransport
+import io.kotest.extensions.wirespec.scenario
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 
@@ -1847,7 +1847,7 @@ Note: This uses `channel<String>(GreetingChannelStub::class)` — the ScenarioBu
 
 - [ ] **Step 2: Run, verify FAIL**
 
-Run: `./gradlew :runtime:test --tests "io.kotest.extensions.spring.wirespec.runtime.ScenarioRunnerChannelTest"`
+Run: `./gradlew :runtime:test --tests "io.kotest.extensions.wirespec.runtime.ScenarioRunnerChannelTest"`
 Expected: FAIL — receive direction not yet supported.
 
 - [ ] **Step 3: Implement Expect + Collect in ScenarioRunner.runChannel**
@@ -1861,7 +1861,7 @@ ChannelCallBuilder.Direction.Collect -> {
     val records = kotlinx.coroutines.runBlocking {
         ctx.messaging.receive(topic, atLeast, within)
     }
-    val validator = io.kotest.extensions.spring.wirespec.validation.ChannelValidator(call.reflection, ctx.serialization)
+    val validator = io.kotest.extensions.wirespec.validation.ChannelValidator(call.reflection, ctx.serialization)
     val typed = records.map { rec ->
         try {
             validator.deserialize(rec.body)
@@ -1893,7 +1893,7 @@ ChannelCallBuilder.Direction.Collect -> {
 
 - [ ] **Step 4: Run, verify PASS**
 
-Run: `./gradlew :runtime:test --tests "io.kotest.extensions.spring.wirespec.runtime.ScenarioRunnerChannelTest"`
+Run: `./gradlew :runtime:test --tests "io.kotest.extensions.wirespec.runtime.ScenarioRunnerChannelTest"`
 Expected: PASS (3 tests).
 
 Full suite: `./gradlew :runtime:test`
@@ -1937,15 +1937,15 @@ If any non-doc usage of `defaultCtx` is found, update it to `endpointCtx` in the
 Replace the file:
 
 ```kotlin
-package io.kotest.extensions.spring.wirespec
+package io.kotest.extensions.wirespec
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import community.flock.wirespec.integration.jackson.kotlin.WirespecSerialization
 import io.kotest.core.spec.style.FunSpec
-import io.kotest.extensions.spring.wirespec.channel.EmbeddedKafkaMessageTransport
-import io.kotest.extensions.spring.wirespec.dsl.ScenarioBuilder
-import io.kotest.extensions.spring.wirespec.kotest.SpringSpecExtension
-import io.kotest.extensions.spring.wirespec.spring.MockMvcTransportation
+import io.kotest.extensions.wirespec.channel.EmbeddedKafkaMessageTransport
+import io.kotest.extensions.wirespec.dsl.ScenarioBuilder
+import io.kotest.extensions.wirespec.kotest.SpringSpecExtension
+import io.kotest.extensions.wirespec.spring.MockMvcTransportation
 import io.kotest.property.RandomSource
 import io.kotest.property.checkAll
 import org.springframework.beans.factory.annotation.Autowired
@@ -2107,7 +2107,7 @@ EOF
 Create the file:
 
 ```kotlin
-package io.kotest.extensions.spring.wirespec.channel
+package io.kotest.extensions.wirespec.channel
 
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.consumer.KafkaConsumer
@@ -2213,7 +2213,7 @@ open val channelCtx: WirespecChannelContext? by lazy {
 Add the import:
 
 ```kotlin
-import io.kotest.extensions.spring.wirespec.channel.EmbeddedKafkaMessageTransport
+import io.kotest.extensions.wirespec.channel.EmbeddedKafkaMessageTransport
 ```
 
 - [ ] **Step 3: Run runtime tests**
@@ -2340,7 +2340,7 @@ EOF
 Create `example/src/main/kotlin/io/kotest/extensions/spring/wirespec/example/domain/PetCreatedEvent.kt`:
 
 ```kotlin
-package io.kotest.extensions.spring.wirespec.example.domain
+package io.kotest.extensions.wirespec.example.domain
 
 data class PetCreatedEvent(
     val id: String,
@@ -2354,9 +2354,9 @@ data class PetCreatedEvent(
 Create `example/src/main/kotlin/io/kotest/extensions/spring/wirespec/example/service/PetEventPublisher.kt`:
 
 ```kotlin
-package io.kotest.extensions.spring.wirespec.example.service
+package io.kotest.extensions.wirespec.example.service
 
-import io.kotest.extensions.spring.wirespec.example.domain.PetCreatedEvent
+import io.kotest.extensions.wirespec.example.domain.PetCreatedEvent
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.stereotype.Service
 
@@ -2401,7 +2401,7 @@ spring.kafka.producer.key-serializer=org.apache.kafka.common.serialization.Strin
 spring.kafka.producer.value-serializer=org.springframework.kafka.support.serializer.JsonSerializer
 spring.kafka.consumer.key-deserializer=org.apache.kafka.common.serialization.StringDeserializer
 spring.kafka.consumer.value-deserializer=org.springframework.kafka.support.serializer.JsonDeserializer
-spring.kafka.consumer.properties.spring.json.trusted.packages=io.kotest.extensions.spring.wirespec.example.domain
+spring.kafka.consumer.properties.spring.json.trusted.packages=io.kotest.extensions.wirespec.example.domain
 ```
 
 - [ ] **Step 4: Verify the extractor picks the producer up as a channel**
@@ -2448,7 +2448,7 @@ EOF
 Create `example/src/main/kotlin/io/kotest/extensions/spring/wirespec/example/domain/CreatePetCommand.kt`:
 
 ```kotlin
-package io.kotest.extensions.spring.wirespec.example.domain
+package io.kotest.extensions.wirespec.example.domain
 
 data class CreatePetCommand(
     val correlationId: String,
@@ -2462,10 +2462,10 @@ data class CreatePetCommand(
 Create `example/src/main/kotlin/io/kotest/extensions/spring/wirespec/example/service/PetCommandListener.kt`:
 
 ```kotlin
-package io.kotest.extensions.spring.wirespec.example.service
+package io.kotest.extensions.wirespec.example.service
 
-import io.kotest.extensions.spring.wirespec.example.domain.CreatePetCommand
-import io.kotest.extensions.spring.wirespec.example.domain.Pet
+import io.kotest.extensions.wirespec.example.domain.CreatePetCommand
+import io.kotest.extensions.wirespec.example.domain.Pet
 import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.stereotype.Service
 import java.time.Instant
@@ -2541,16 +2541,16 @@ Note the two identifiers — they'll have generated `*Dsl.kt` files and DSL rece
 Create `example/src/test/kotlin/io/kotest/extensions/spring/wirespec/example/PetChannelScenariosSpec.kt`. Substitute `<ProducerChannel>` and `<ConsumerChannel>` with the identifiers from Step 1:
 
 ```kotlin
-package io.kotest.extensions.spring.wirespec.example
+package io.kotest.extensions.wirespec.example
 
 import io.kotest.assertions.nondeterministic.eventually
-import io.kotest.extensions.spring.wirespec.SpringWirespecSpec
-import io.kotest.extensions.spring.wirespec.example.generated.endpoint.CreatePet
-import io.kotest.extensions.spring.wirespec.example.generated.endpoint.GetPet
-import io.kotest.extensions.spring.wirespec.example.generated.kotest.createPet
-import io.kotest.extensions.spring.wirespec.example.generated.kotest.getPet
-import io.kotest.extensions.spring.wirespec.example.generated.kotest.<producerChannelDslName>
-import io.kotest.extensions.spring.wirespec.example.generated.kotest.<consumerChannelDslName>
+import io.kotest.extensions.wirespec.SpringWirespecSpec
+import io.kotest.extensions.wirespec.example.generated.endpoint.CreatePet
+import io.kotest.extensions.wirespec.example.generated.endpoint.GetPet
+import io.kotest.extensions.wirespec.example.generated.kotest.createPet
+import io.kotest.extensions.wirespec.example.generated.kotest.getPet
+import io.kotest.extensions.wirespec.example.generated.kotest.<producerChannelDslName>
+import io.kotest.extensions.wirespec.example.generated.kotest.<consumerChannelDslName>
 import io.kotest.matchers.shouldBe
 import io.kotest.property.Arb
 import io.kotest.property.arbitrary.string

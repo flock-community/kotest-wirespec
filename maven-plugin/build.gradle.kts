@@ -1,14 +1,13 @@
 plugins {
     kotlin("jvm") version "2.3.0"
-    `maven-publish`
+    id("com.vanniktech.maven.publish.base") version "0.30.0"
 }
 
-group = "io.kotest.extensions"
+group = "community.flock.wirespec.kotest"
 version = (providers.gradleProperty("version").orNull) ?: "0.0.0-SNAPSHOT"
 
 java {
     toolchain { languageVersion = JavaLanguageVersion.of(21) }
-    withSourcesJar()
 }
 
 val mavenApiVersion = "3.9.6"
@@ -33,26 +32,48 @@ dependencies {
 // replaced with the build version before it lands in the jar.
 tasks.named<Copy>("processResources") {
     from("src/main/resources-template") {
-        include("**/*.xml")
+        include("**/*.xml", "**/*.properties")
         expand(
             "projectVersion" to project.version.toString(),
-            "extractorVersion" to (providers.gradleProperty("wirespecExtractorVersion").orNull ?: "0.0.8"),
-            "wirespecVersion" to (providers.gradleProperty("wirespecVersion").orNull ?: "0.19.0-RC.3"),
+            "extractorVersion" to (providers.gradleProperty("wirespecExtractorVersion").orNull ?: "0.0.13"),
+            "wirespecVersion" to (providers.gradleProperty("wirespecVersion").orNull ?: "0.19.3-RC.1"),
         )
     }
     from("src/main/resources")
 }
 
-publishing {
-    publications {
-        create<MavenPublication>("maven") {
-            from(components["java"])
-            artifactId = "kotest-extensions-spring-wirespec-maven-plugin"
-            pom {
-                name.set("Kotest Spring Wirespec Maven Plugin")
-                description.set("Extracts Wirespec contracts from Spring controllers and generates a typesafe Kotest DSL.")
-                packaging = "maven-plugin"
+mavenPublishing {
+    configureBasedOnAppliedPlugins()
+    publishToMavenCentral(
+        com.vanniktech.maven.publish.SonatypeHost.CENTRAL_PORTAL,
+        automaticRelease = true,
+    )
+    signAllPublications()
+    coordinates(group.toString(), "kotest-wirespec-maven-plugin", version.toString())
+    pom {
+        name.set("kotest-wirespec-maven-plugin")
+        description.set("Extracts Wirespec contracts from Spring controllers and generates a typesafe Kotest DSL.")
+        packaging = "maven-plugin"
+        url.set("https://github.com/flock-community/kotest-wirespec")
+        licenses {
+            license {
+                name.set("The Apache License, Version 2.0")
+                url.set("https://www.apache.org/licenses/LICENSE-2.0.txt")
             }
+        }
+        developers {
+            developer {
+                id.set("wilmveel")
+                name.set("Willem Veelenturf")
+                email.set("willem.veelenturf@flock.community")
+                organization.set("Flock. Community")
+                organizationUrl.set("https://flock.community")
+            }
+        }
+        scm {
+            connection.set("scm:git:git://github.com/flock-community/kotest-wirespec.git")
+            developerConnection.set("scm:git:ssh://github.com:flock-community/kotest-wirespec.git")
+            url.set("https://github.com/flock-community/kotest-wirespec")
         }
     }
 }
@@ -71,16 +92,22 @@ val publishEmitterToMavenLocal by tasks.registering(Exec::class) {
     commandLine(outerGradlew, "--no-daemon", "publishToMavenLocal")
 }
 
-val publishRuntimeToMavenLocal by tasks.registering(Exec::class) {
+val publishCoreToMavenLocal by tasks.registering(Exec::class) {
     workingDir = outerRoot
-    commandLine(outerGradlew, "--no-daemon", ":runtime:publishToMavenLocal")
+    commandLine(outerGradlew, "--no-daemon", ":core:publishToMavenLocal")
+}
+
+val publishSpringToMavenLocal by tasks.registering(Exec::class) {
+    workingDir = outerRoot
+    commandLine(outerGradlew, "--no-daemon", ":spring:publishToMavenLocal")
 }
 
 tasks.test {
     useJUnitPlatform()
     dependsOn(
         publishEmitterToMavenLocal,
-        publishRuntimeToMavenLocal,
+        publishCoreToMavenLocal,
+        publishSpringToMavenLocal,
         tasks.named("publishToMavenLocal"),
     )
 }
