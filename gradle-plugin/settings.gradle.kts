@@ -13,6 +13,4 @@ dependencyResolutionManagement {
     }
 }
 
-includeBuild("../emitter")
-
 rootProject.name = "kotest-wirespec-gradle"

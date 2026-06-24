@@ -36,7 +36,7 @@ tasks.named<Copy>("processResources") {
         expand(
             "projectVersion" to project.version.toString(),
             "extractorVersion" to (providers.gradleProperty("wirespecExtractorVersion").orNull ?: "0.0.13"),
-            "wirespecVersion" to (providers.gradleProperty("wirespecVersion").orNull ?: "0.19.3-RC.1"),
+            "wirespecVersion" to (providers.gradleProperty("wirespecVersion").orNull ?: "0.20.0-RC.2"),
         )
     }
     from("src/main/resources")
@@ -78,36 +78,10 @@ mavenPublishing {
     }
 }
 
-// The integration test invokes `mvn verify` against a fixture that pulls
-// emitter, runtime, and this plugin from ~/.m2. Install all three first.
-// Shell out to the outer Gradle wrapper because emitter is its own composite
-// build and runtime lives in the outer composite — neither is addressable
-// from maven-plugin/'s task graph. Gradle 9 removed Project.exec from build
-// scripts, so we wire dedicated Exec tasks instead.
-val outerRoot = project.rootDir.parentFile
-val outerGradlew = outerRoot.resolve("gradlew").absolutePath
-
-val publishEmitterToMavenLocal by tasks.registering(Exec::class) {
-    workingDir = outerRoot.resolve("emitter")
-    commandLine(outerGradlew, "--no-daemon", "publishToMavenLocal")
-}
-
-val publishCoreToMavenLocal by tasks.registering(Exec::class) {
-    workingDir = outerRoot
-    commandLine(outerGradlew, "--no-daemon", ":core:publishToMavenLocal")
-}
-
-val publishSpringToMavenLocal by tasks.registering(Exec::class) {
-    workingDir = outerRoot
-    commandLine(outerGradlew, "--no-daemon", ":spring:publishToMavenLocal")
-}
-
+// The integration test invokes `mvn verify`/`mvn test-compile` against fixtures that
+// pull this plugin from ~/.m2 (and the wirespec runtime/emitter/Kotest DSL extension
+// from Maven Central). Only this plugin needs a local install first.
 tasks.test {
     useJUnitPlatform()
-    dependsOn(
-        publishEmitterToMavenLocal,
-        publishCoreToMavenLocal,
-        publishSpringToMavenLocal,
-        tasks.named("publishToMavenLocal"),
-    )
+    dependsOn(tasks.named("publishToMavenLocal"))
 }

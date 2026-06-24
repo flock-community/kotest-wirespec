@@ -18,8 +18,8 @@
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
         <kotlin.version>2.3.0</kotlin.version>
-        <kotest.version>6.1.11</kotest.version>
-        <wirespec.runtime.version>0.0.0-SNAPSHOT</wirespec.runtime.version>
+        <kotest.version>6.1.4</kotest.version>
+        <wirespec.runtime.version>0.20.0-RC.2</wirespec.runtime.version>
         <wirespec.plugin.version>0.0.0-SNAPSHOT</wirespec.plugin.version>
     </properties>
 
@@ -48,16 +48,43 @@
             <version>2.2.25</version>
         </dependency>
 
+        <!-- Wirespec's Kotest scenario-DSL runtime (the generated `<Endpoint>.call { }`
+             DSL compiles against it). wirespec-jvm carries the `Wirespec` runtime the
+             generated models need; jackson-jvm supplies `WirespecSerialization`. -->
         <dependency>
-            <groupId>community.flock.wirespec.kotest</groupId>
-            <artifactId>kotest-wirespec</artifactId>
+            <groupId>community.flock.wirespec.integration</groupId>
+            <artifactId>kotest-jvm</artifactId>
             <version>${wirespec.runtime.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>community.flock.wirespec.kotest</groupId>
-            <artifactId>kotest-wirespec-spring</artifactId>
+            <groupId>community.flock.wirespec.integration</groupId>
+            <artifactId>wirespec-jvm</artifactId>
             <version>${wirespec.runtime.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>community.flock.wirespec.integration</groupId>
+            <artifactId>jackson-jvm</artifactId>
+            <version>${wirespec.runtime.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.kotest</groupId>
+            <artifactId>kotest-property-jvm</artifactId>
+            <version>${kotest.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.kotest</groupId>
+            <artifactId>kotest-runner-junit5-jvm</artifactId>
+            <version>${kotest.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.kotest</groupId>
+            <artifactId>kotest-assertions-core-jvm</artifactId>
+            <version>${kotest.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

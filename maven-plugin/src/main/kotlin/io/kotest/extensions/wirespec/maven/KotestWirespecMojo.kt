@@ -65,8 +65,14 @@ class KotestWirespecMojo : AbstractMojo() {
 
     override fun execute() {
         val env = executionEnvironment(project, session, pluginManager)
-        val effectivePackage = generatedPackage?.takeIf { it.isNotBlank() }
-            ?: "$basePackage.generated"
+        // RC limitation: wirespec 0.20.0-RC.2's `KotlinIrEmitter` hardcodes generated
+        // models to `community.flock.wirespec.generated`, ignoring `packageName` (only the
+        // Kotest DSL honors it). Pin packageName to that value so the generated DSL and
+        // models share one package and compile together. `basePackage`/`generatedPackage`
+        // therefore no longer control the generated code's package (until a wirespec release
+        // restores IR-emitter packageName handling); `basePackage` still drives the Spring
+        // extractor below.
+        val effectivePackage = WIRESPEC_IR_GENERATED_PACKAGE
 
         val springEnabled = spring ?: hasSpringBootOnClasspath()
 
@@ -96,14 +102,19 @@ class KotestWirespecMojo : AbstractMojo() {
             )
         }
 
-        log.info("Generating typesafe Kotest DSL into $generatedDir (package $effectivePackage)")
+        log.info("Generating Kotest scenario DSL into $generatedDir (package $effectivePackage)")
         executeMojo(
             plugin(
                 groupId(WIRESPEC_GROUP),
                 artifactId(WIRESPEC_ARTIFACT),
                 version(WIRESPEC_VERSION),
+                // The wirespec compile goal reflectively loads the emitter + extension from
+                // its own plugin realm, so both must be on its dependency classpath. Both
+                // resolve at the same wirespec version as the compile plugin (no Arrow realm
+                // mismatch).
                 listOf(
-                    dependency(EMITTER_GROUP, EMITTER_ARTIFACT, EMITTER_VERSION),
+                    dependency(KOTLIN_EMITTER_GROUP, KOTLIN_EMITTER_ARTIFACT, WIRESPEC_VERSION),
+                    dependency(KOTEST_EXTENSION_GROUP, KOTEST_EXTENSION_ARTIFACT, WIRESPEC_VERSION),
                 ),
             ),
             goal("compile"),
@@ -111,7 +122,11 @@ class KotestWirespecMojo : AbstractMojo() {
                 element("input", inputDir.absolutePath),
                 element("output", generatedDir.absolutePath),
                 element("packageName", effectivePackage),
-                element("emitterClass", EMITTER_FQCN),
+                // IR emitter for the Kotlin models, with wirespec's Kotest DSL layered on top.
+                element("emitterClass", KOTLIN_IR_EMITTER_FQCN),
+                element("extensionClasses", element("extensionClass", KOTEST_DSL_EXTENSION_FQCN)),
+                // The shared `Wirespec` runtime comes from `wirespec-jvm`, so don't emit a copy.
+                element("shared", "false"),
             ),
             env,
         )
@@ -129,19 +144,27 @@ class KotestWirespecMojo : AbstractMojo() {
         const val WIRESPEC_GROUP = "community.flock.wirespec.plugin.maven"
         const val WIRESPEC_ARTIFACT = "wirespec-maven-plugin"
 
-        const val EMITTER_GROUP = "community.flock.wirespec.kotest"
-        const val EMITTER_ARTIFACT = "kotest-wirespec-emitter"
-        const val EMITTER_FQCN =
-            "io.kotest.extensions.wirespec.emitter.TypesafeDslEmitter"
+        // The IR Kotlin emitter (models) and the Kotest DSL extension (`<Endpoint>.call { }`)
+        // both ship as wirespec artifacts at WIRESPEC_VERSION — they replace this repo's
+        // former `kotest-wirespec-emitter`.
+        const val KOTLIN_EMITTER_GROUP = "community.flock.wirespec.compiler.emitters"
+        const val KOTLIN_EMITTER_ARTIFACT = "kotlin-jvm"
+        const val KOTLIN_IR_EMITTER_FQCN = "community.flock.wirespec.emitters.kotlin.KotlinIrEmitter"
+
+        const val KOTEST_EXTENSION_GROUP = "community.flock.wirespec.integration"
+        const val KOTEST_EXTENSION_ARTIFACT = "kotest-jvm"
+        const val KOTEST_DSL_EXTENSION_FQCN =
+            "community.flock.wirespec.integration.kotest.extension.KotestDslExtension"
+
+        // See the usage site: the RC IR emitter ignores `packageName` for models and always
+        // writes them here, so the generated DSL is pinned to the same package.
+        const val WIRESPEC_IR_GENERATED_PACKAGE = "community.flock.wirespec.generated"
 
         // Versions are injected at build time (see maven-plugin/build.gradle.kts
-        // processResources → kotest-wirespec-versions.properties), so the
-        // released plugin pins released coordinates and the emitter version
-        // tracks this plugin's own version. WIRESPEC_VERSION must match the
-        // wirespecVersion the emitter is built against (gradle.properties) —
-        // mismatched versions cause Arrow 1.x vs 2.x classloader
-        // incompatibility when the upstream compiler and our emitter share a
-        // plugin realm.
+        // processResources → kotest-wirespec-versions.properties), so the released plugin
+        // pins released coordinates. The emitter + Kotest extension resolve at the same
+        // WIRESPEC_VERSION as the compile plugin, so they share one plugin realm without an
+        // Arrow 1.x vs 2.x classloader mismatch.
         private val versions: java.util.Properties by lazy {
             java.util.Properties().apply {
                 KotestWirespecMojo::class.java
@@ -153,6 +176,5 @@ class KotestWirespecMojo : AbstractMojo() {
 
         val EXTRACTOR_VERSION: String get() = versions.getProperty("extractorVersion")
         val WIRESPEC_VERSION: String get() = versions.getProperty("wirespecVersion")
-        val EMITTER_VERSION: String get() = versions.getProperty("emitterVersion")
     }
 }

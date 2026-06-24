@@ -1,30 +1,30 @@
 package example
 
-import example.generated.endpoint.GetPet
-import example.generated.kotest.PetController
+import community.flock.wirespec.generated.endpoint.GetPet
+import community.flock.wirespec.generated.kotest.call
+import community.flock.wirespec.integration.kotest.WirespecExtension
 import io.kotest.core.extensions.ApplyExtension
 import io.kotest.core.spec.style.FunSpec
-import io.kotest.extensions.spring.SpringRootTestExtension
-import io.kotest.extensions.wirespec.WirespecExtension
+import io.kotest.property.Arb
+import io.kotest.property.arbitrary.constant
 import io.kotest.property.checkAll
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
-import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.context.ApplicationContext
 
-@SpringBootTest(classes = [ExampleApplication::class])
-@AutoConfigureMockMvc
-@ApplyExtension(SpringRootTestExtension::class, WirespecExtension::class)
+/**
+ * Smoke test for the maven-plugin: proves the extracted-then-generated `<Endpoint>.call { }`
+ * DSL drives a real HTTP call against the running app and validates the typed response. The
+ * transport is supplied by [example.support.SmokeEnvironment] via
+ * [example.support.SmokeContextProvider] (discovered through `META-INF/services`); the spec
+ * only mounts the ambient.
+ */
+@ApplyExtension(WirespecExtension::class)
 class PetSmokeSpec : FunSpec({
 
     test("getPet round-trips") {
         checkAll<Int>(iterations = 3) {
-            PetController.getPet
-                .path("existing")
-                .expecting<GetPet.Response200>()
+            GetPet.call {
+                path = { id = Arb.constant("existing") }
+                expecting<GetPet.Response200>()
+            }
         }
     }
-}) {
-    @Autowired
-    protected lateinit var applicationContext: ApplicationContext
-}
+})
