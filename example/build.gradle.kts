@@ -17,19 +17,37 @@ repositories {
     mavenCentral()
 }
 
+// Matches the kotest version wirespec's kotest-jvm:0.20.0-RC.2 is built against
+// (it pins kotest-framework-engine 6.1.4 transitively).
+val kotestVersion = "6.1.4"
+val wirespecVersion = "0.20.0-RC.2"
+
 dependencies {
-    // Servlet stack so @AutoConfigureMockMvc applies. Spring MVC 5.2+ accepts
-    // `suspend` controller methods, so the existing controllers don't need to
-    // change.
+    // Servlet stack so the app serves the generated endpoints over real HTTP.
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.springframework.kafka:spring-kafka")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("io.swagger.core.v3:swagger-annotations:2.2.25")
+    // The controllers use `suspend` handler methods; Spring MVC needs the Reactor
+    // coroutine adapter to invoke them. (Previously pulled in transitively via the
+    // removed `:spring` module.)
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor")
 
-    testImplementation(project(":core"))
-    testImplementation(project(":spring"))
+    // Wirespec's Kotest scenario-DSL runtime — the generated `<Endpoint>.call { }`
+    // and channel DSL compile against it. `jackson-jvm` supplies `WirespecSerialization`
+    // (the `Wirespec.Serialization` the transports/contexts use). `wirespec-jvm` carries
+    // the `Wirespec` runtime the generated models compile against — kotest-jvm depends on
+    // it only at runtime scope, so it must be on the test compile classpath explicitly.
+    testImplementation("community.flock.wirespec.integration:wirespec-jvm:$wirespecVersion")
+    testImplementation("community.flock.wirespec.integration:kotest-jvm:$wirespecVersion")
+    testImplementation("community.flock.wirespec.integration:jackson-jvm:$wirespecVersion")
+    testImplementation("io.kotest:kotest-property:$kotestVersion")
+    testImplementation("io.kotest:kotest-runner-junit5:$kotestVersion")
+    testImplementation("io.kotest:kotest-assertions-core:$kotestVersion")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-core")
+    testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.springframework.kafka:spring-kafka-test")
 }
 
@@ -44,9 +62,5 @@ kotestWirespec {
 }
 
 tasks.withType<Test> {
-    useJUnitPlatform {
-        // Explicitly include both engines so JUnit Jupiter tests
-        // (PetScenariosJUnitTest) run alongside Kotest specs.
-        includeEngines("kotest", "junit-jupiter")
-    }
+    useJUnitPlatform()
 }
